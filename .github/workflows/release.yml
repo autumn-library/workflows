@@ -54,5 +54,5 @@ jobs:
 
       - name: Публикация в hub.oscript.io
         shell: bash
-        run: opm push -f ${{ env.PACKAGE_MASK }} --token ${{ secrets.PUSH_TOKEN }} -c stable
+        run: opm push --token ${{ secrets.PUSH_TOKEN }} --channel stable ${{ env.PACKAGE_MASK }}
  
