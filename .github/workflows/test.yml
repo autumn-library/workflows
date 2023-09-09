@@ -19,7 +19,7 @@ jobs:
         
     steps:
       - name: Актуализация
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Установка OneScript
         uses: otymko/setup-onescript@v1.1
