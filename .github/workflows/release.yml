@@ -54,5 +54,8 @@ jobs:
 
       - name: Публикация в hub.oscript.io
         shell: bash
-        run: opm push --token ${{ secrets.PUSH_TOKEN }} --channel stable ${{ env.PACKAGE_MASK }}
+        env:
+          GITHUB_OAUTH_TOKEN: ${{ secrets.PUSH_TOKEN }}
+          OPM_HUB_CHANNEL: stable
+        run: opm push ${{ env.PACKAGE_MASK }}
  
