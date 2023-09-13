@@ -31,6 +31,8 @@ jobs:
       # Загрузка проекта
       - name: Актуализация
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       # Вычисление имени ветки
       - name: Compute branch name
