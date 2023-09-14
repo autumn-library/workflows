@@ -40,7 +40,7 @@ jobs:
 
       # Установка OneScript конкретной версии
       - name: Установка OneScript
-        uses: otymko/setup-onescript@v1.1
+        uses: otymko/setup-onescript@v1.2
         with:
           version: ${{ inputs.oscript_version }}
 
