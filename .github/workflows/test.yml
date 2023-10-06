@@ -40,13 +40,3 @@ jobs:
       - name: Тестирование
         run: oscript ./tasks/test.os
 
-      - name: Archive test results
-        if: always() && matrix.prefix == 'nix'
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          junit_files: "**/out/**/*.xml"
-      - name: Archive test results
-        if: always() && matrix.prefix != 'nix'
-        uses: EnricoMi/publish-unit-test-result-action/composite@v2
-        with:
-          junit_files: "**/out/**/*.xml"
