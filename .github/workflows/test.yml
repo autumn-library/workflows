@@ -21,6 +21,9 @@ jobs:
       - name: Актуализация
         uses: actions/checkout@v4
 
+      - name: Установка свойств git
+        uses: fregante/setup-git-user@v2
+
       - name: Установка OneScript
         uses: otymko/setup-onescript@v1.3
         with:
