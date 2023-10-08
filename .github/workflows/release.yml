@@ -10,12 +10,16 @@ on:
       oscript_version:
         required: true
         type: string
+      package_mask:
+        required: false
+        type: string
+        default: "*.ospx"
     secrets:
       PUSH_TOKEN:
         required: false
 
 env:
-  PACKAGE_MASK: "*.ospx"
+  PACKAGE_MASK: ${{ inputs.package_mask }}
 
 jobs:
   build:
