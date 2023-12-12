@@ -6,6 +6,10 @@ on:
       oscript_version:
         required: true
         type: string
+      test_script_path:
+        required: false
+        type: string
+        default: ./tasks/test.os
 
 jobs:
   build:
@@ -38,5 +42,4 @@ jobs:
           opm install -l --dev
           
       - name: Тестирование
-        run: oscript ./tasks/test.os
-
+        run: oscript ${{ inputs.test_script_path}}
