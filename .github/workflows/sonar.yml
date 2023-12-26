@@ -1,7 +1,3 @@
-# MIT License
-# Copyright (C) 2020 Tymko Oleg <olegtymko@yandex.ru> and contributors
-# All rights reserved.
-
 name: Контроль качества
 
 on:
@@ -18,6 +14,10 @@ on:
         required: false
         default: 'https://sonar.openbsl.ru'
         type: string
+      test_script_path:
+        required: false
+        type: string
+        default: ./tasks/coverage.os 
     secrets:
       SONAR_TOKEN:
         required: false
@@ -28,41 +28,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Загрузка проекта
       - name: Актуализация
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Вычисление имени ветки
-      - name: Compute branch name
+      - name: Вычисление имени ветки
         uses: nelonoel/branch-name@v1.0.1
 
-      # Установка OneScript конкретной версии
       - name: Установка OneScript
         uses: otymko/setup-onescript@v1.3
         with:
           version: ${{ inputs.oscript_version }}
 
-      # Установка зависимостей пакета
-      - name: Установка зависимостей
+      - name: Установка зависимостей пакета
         run: |
           opm install opm
           opm install -l --dev
 
-      # Запуск тестов и сбор покрытия кода
-      - name: Покрытие кода
-        run: oscript ./tasks/coverage.os
+      - name: Запуск тестов
+        run: oscript ${{ inputs.test_script_path }}
 
       - name: Извлечение версии пакета
         shell: bash
         run: echo "##[set-output name=version;]`cat packagedef | grep ".Версия(" | sed 's|[^"]*"||' | sed -r 's/".+//'`"
         id: extract_version
 
-      - name: Setup sonarqube
+      - name: Настройка sonar-scanner
         uses: warchant/setup-sonar-scanner@v7
 
-      # Анализ проекта в SonarQube (ветка)
       - name: Анализ в SonarQube (branch)
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' 
         env:
@@ -73,7 +67,6 @@ jobs:
           -Dsonar.branch.name=${{ env.BRANCH_NAME }}
           -Dsonar.projectVersion=${{ steps.extract_version.outputs.version }}
 
-      # Анализ проекта в SonarQube (PR)
       # https://docs.sonarqube.org/latest/analysis/pull-request/
       - name: Анализ в SonarQube (pull-request)
         if: github.event_name == 'pull_request'
