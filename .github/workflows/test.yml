@@ -32,7 +32,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Установка OneScript
-        uses: otymko/setup-onescript@v1.3
+        uses: otymko/setup-onescript@v1.4
         with:
           version: ${{ matrix.oscript_version }}
 

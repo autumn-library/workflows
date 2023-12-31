@@ -37,7 +37,7 @@ jobs:
         uses: nelonoel/branch-name@v1.0.1
 
       - name: Установка OneScript
-        uses: otymko/setup-onescript@v1.3
+        uses: otymko/setup-onescript@v1.4
         with:
           version: ${{ inputs.oscript_version }}
 
