@@ -40,6 +40,7 @@ jobs:
         shell: bash
         id: extract_oscript_version
         run: |
+          set -ex
           extracted_version=`cat packagedef | grep ".ВерсияСреды(" | sed 's|[^"]*"||' | sed -r 's/".+//'`
           if [ -n '${{ inputs.oscript_version }}' ]
           then
