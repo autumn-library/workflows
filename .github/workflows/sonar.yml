@@ -8,7 +8,7 @@ on:
         type: string
       oscript_version:
         required: false
-        default: 'stable'
+        default: ''
         type: string
       sonar_host_url:
         required: false
