@@ -19,7 +19,7 @@ lib.system=../oscript_modules
 
 | Имя параметра | Описание | Значение по умолчанию |
 | --- | --- | --- |
-| **oscript_version** | Версия движка в формате алиаса для https://github.com/oscript-library/ovm |  |
+| oscript_version  | Версия движка в формате алиаса для https://github.com/oscript-library/ovm | Значение параметра метода ВерсияСреды в packagedef или `stanle` в случае его отсутствия |
 | test_script_path | Путь к скрипту запуска тестов | ./tasks/test.os |
 
 ### Использование
