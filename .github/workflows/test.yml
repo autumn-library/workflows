@@ -37,7 +37,7 @@ jobs:
         id: extract_oscript_version
         run: |
           set -ex
-          extracted_version=$(cat packagedef | grep -oP '".ВерсияСреды\("\K[^"]+' || true)
+          extracted_version=$(sed -n 's/.*".ВерсияСреды("\([^"]*\).*/\1/p' packagedef || true)
           if [ -n '${{ inputs.oscript_version }}' ]
           then
             version='${{ inputs.oscript_version }}'
