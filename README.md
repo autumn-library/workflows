@@ -24,7 +24,34 @@ lib.system=../oscript_modules
 
 ### Использование
 
-1) Запуск на нескольких версиях oscript в режиме матричной сборки
+1) Запуск тестирования:
+
+```yaml
+name: Тестирование
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: autumn-library/workflows/.github/workflows/test.yml@v1
+``` 
+
+Данный пример запустит задачу тестирования на трех операционных системах: Windows, Ubuntu и macos. 
+Если в файле packagedef вашей библиотеки есть вызов метода "ВерсияСреды", то будет взято значение из параметра метода. Если вызов ВерсияСреды отсутствует, то запуск тестирования будет проводиться на версии stable. 
+
+При необходимости можно явно указать версию OneScript в параметре `oscript_version`:
+
+```yaml
+...
+    uses: autumn-library/workflows/.github/workflows/test.yml@v1 
+    with:
+      oscript_version: dev
+```
+
+2) Запуск на нескольких версиях oscript в режиме матричной сборки
 
 ```yaml
 name: Тестирование
@@ -46,20 +73,3 @@ jobs:
 ```
 
 Данный пример запустит задачу на трех операционных системах с тремя разными версиями oscript - 1.8.4, последней релизной версии и последней ночной сборке.
-
-2) Запуск на единственной версии оскрипта можно проводить как в режиме матричной сборки, указав только одно значение в oscript_version, так и с помощью облегчённой сборочной линии:
-
-```yaml
-name: Тестирование
-
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
-
-jobs:
-  test:
-    uses: autumn-library/workflows/.github/workflows/test.yml@v1
-    with:
-      oscript_version: stable
-```
