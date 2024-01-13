@@ -12,7 +12,7 @@ lib.system=../oscript_modules
 В репозитории есть теги и гарантируется обратная совместимость в пределах мажорной версии. 
 Для оперативного получения новых фич нацеливайтесь на `@main`, для стабильных версий workflow - на последний мажорный тег - в данный момент `@v1`.
 
-Для автообновления версий workflow рекомендуется использовать dependabot. Пример в репозитории autumn-library/annotations: https://github.com/autumn-library/annotations/blob/test-oscript-version/.github/dependabot.yml
+Для автообновления версий workflow рекомендуется использовать dependabot. Пример в репозитории autumn-library/annotations по [ссылке](https://github.com/autumn-library/annotations/blob/test-oscript-version/.github/dependabot.yml).
 
 - [workflows](#workflows)
   - [Тестирование](#тестирование)
