@@ -9,6 +9,9 @@
 lib.system=../oscript_modules
 ```
 
+В репозитории есть теги и гарантируется обратная совместимость в пределах мажорной версии. 
+Для оперативного получения новых фич нацеливайтесь на `@main`, для стабильных версий workflow - на последний мажорный тег - в данный момент `@v1`.
+
 - [workflows](#workflows)
   - [Тестирование](#тестирование)
     - [Использование](#использование)
@@ -114,9 +117,9 @@ on:
 
 jobs:
   sonar:
-    uses: autumn-library/workflows/.github/workflows/sonar.yml@main
+    uses: autumn-library/workflows/.github/workflows/sonar.yml@v1
     with:
-      github_repository: autumn-library/annotations
+      github_repository: autumn-library/annotations # change me!
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 ```
