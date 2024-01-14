@@ -19,6 +19,8 @@ lib.system=../oscript_modules
     - [Использование](#использование)
   - [Контроль качества (SonarQube)](#контроль-качества-sonarqube)
     - [Использование](#использование-1)
+  - [Публикация релиза](#публикация-релиза)
+    - [Использование](#использование-2)
 
 ## Тестирование
 
@@ -125,4 +127,45 @@ jobs:
       github_repository: autumn-library/annotations # change me!
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+```
+
+## Публикация релиза
+
+Сборочная линия для выполнения анализа качества кода с помощью SonarQube. Поддерживается запуск из ветки, из pull request и ручной запуск из информации о конкретном workflow. Анализ pull request из форков пока не поддерживается.
+
+Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml)
+
+Параметры:
+
+| Имя параметра         | Описание                                                                                                | Значение по умолчанию                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| oscript_version       | Версия движка в формате алиаса для https://github.com/oscript-library/ovm                               | Значение параметра метода ВерсияСреды в packagedef или `stable` в случае его отсутствия |
+| package_mask      | Путь к скрипту запуска тестов                                                                           | ./tasks/coverage.os                                                                     |
+
+Секреты:
+
+| Имя секрета | Описание                                      | Обязательный |
+| ----------- | --------------------------------------------- | ------------ |
+| PUSH_TOKEN  | GitHub токен для публикации релизов в хаб opm | Нет          |
+
+### Использование
+
+Для использования сборочной линии необходимо предварительно подготовить файл `sonar-project.properties` и расположить его в корне проекта. Сборочная линия ожидает, что в репозитории есть скрипт `tasks/coverage.os`, с помощью которого запускаются тесты со сбором покрытия, однако это можно переопределить. Если ваш сервер SonarQube требует авторизацию, то необходимо передать в workflow секрет `SONAR_TOKEN`.
+
+```yaml
+name: Публикация релиза
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+jobs:
+  release:
+    uses: autumn-library/workflows/.github/workflows/release.yml@v1
+    with:
+      package_mask: "annotations-*.ospx" # change me!
+    secrets:
+      PUSH_TOKEN: ${{ secrets.PUSH_TOKEN }}
 ```
