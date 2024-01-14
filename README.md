@@ -131,7 +131,7 @@ jobs:
 
 ## Публикация релиза
 
-Сборочная линия для сборки и публикации пакета библиотеки в артефакты и эаю пакетов https://hub.oscript.io. Поддерживается автоматический запуск при публикации GitHub Release и ручной запуск из информации о конкретном workflow.
+Сборочная линия для сборки и публикации пакета библиотеки в артефакты и хаб пакетов https://hub.oscript.io. Поддерживается автоматический запуск при публикации GitHub Release и ручной запуск из информации о конкретном workflow.
 
 Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/release.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/release.yml)
 
