@@ -8,7 +8,7 @@ on:
         type: string
       oscript_version:
         required: false
-        default: ''
+        default: 'default'
         type: string
       sonar_host_url:
         required: false
@@ -41,15 +41,12 @@ jobs:
         id: extract_oscript_version
         run: |
           set -ex
-          extracted_version=$(cat packagedef | grep ".ВерсияСреды(" | sed 's|[^"]*"||' | sed -r 's/".+//' || true)
-          if [ -n '${{ inputs.oscript_version }}' ]
+          if [ "${{ inputs.oscript_version }}" = "default" ]
           then
-            version='${{ inputs.oscript_version }}'
-          elif [ -n "$extracted_version" ]
-          then
-            version="$extracted_version"
+            extracted_version=$(cat packagedef | grep ".ВерсияСреды(" | sed 's|[^"]*"||' | sed -r 's/".+//' || true)
+            version="${extracted_version:-stable}"
           else
-            version='stable'
+            version="${{ inputs.oscript_version }}"
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
 
