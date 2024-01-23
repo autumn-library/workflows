@@ -80,10 +80,10 @@ jobs:
         if: always() && steps.check_files.outputs.files_exists == 'true' && matrix.os == 'ubuntu-latest'
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          junit_files: ${{ inputs.junit_report_path }}
+          junit_files: "${{ inputs.junit_report_path }}/**/*.xml"
 
       - name: Сохранение результатов тестирования
         if: always() && steps.check_files.outputs.files_exists == 'true' && matrix.os != 'ubuntu-latest'
         uses: EnricoMi/publish-unit-test-result-action/composite@v2
         with:
-          junit_files: ${{ inputs.junit_report_path }}
+          junit_files: "${{ inputs.junit_report_path }}/**/*.xml"
