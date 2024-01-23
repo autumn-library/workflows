@@ -70,7 +70,7 @@ jobs:
       - name: Тестирование
         run: oscript ${{ inputs.test_script_path}} ${{ inputs.test_script_args }}
 
-      - name: Проверка существтования директории с результатами тестов
+      - name: Проверка существования директории с результатами тестов
         id: check_files
         uses: andstor/file-existence-action@v2
         with:
