@@ -11,9 +11,20 @@ on:
         required: false
         type: string
         default: ./tasks/test.os
+      test_script_args:
+        required: false
+        type: string
+        default: ""
+      junit_report_path:
+        required: false
+        type: string
+        default: "out/JUnit"
 
 jobs:
   build:
+    permissions:
+      checks: write
+      pull-requests: write
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -57,4 +68,22 @@ jobs:
           opm install -l --dev
           
       - name: Тестирование
-        run: oscript ${{ inputs.test_script_path}}
+        run: oscript ${{ inputs.test_script_path}} ${{ inputs.test_script_args }}
+
+      - name: Проверка существтования директории с результатами тестов
+        id: check_files
+        uses: andstor/file-existence-action@v2
+        with:
+          files: ${{ inputs.junit_report_path }}
+
+      - name: Сохранение результатов тестирования
+        if: always() && steps.check_files.outputs.files_exists == 'true' && matrix.os == 'ubuntu-latest'
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          junit_files: "**/test-results/test/**/*.xml"
+
+      - name: Сохранение результатов тестирования
+        if: always() && steps.check_files.outputs.files_exists == 'true' && matrix.os != 'ubuntu-latest'
+        uses: EnricoMi/publish-unit-test-result-action/composite@v2
+        with:
+          junit_files: "**/test-results/test/**/*.xml"
