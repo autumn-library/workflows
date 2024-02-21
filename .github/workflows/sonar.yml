@@ -63,6 +63,13 @@ jobs:
       - name: Запуск тестов
         run: oscript ${{ inputs.test_script_path }}
 
+      - name: Сохранение результатов покрытия
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: out/coverage.xml
+          if-no-files-found: ignore
+
       - name: Извлечение версии пакета
         shell: bash
         run: echo "version=`cat packagedef | grep ".Версия(" | sed 's|[^"]*"||' | sed -r 's/".+//'`" >> $GITHUB_OUTPUT
