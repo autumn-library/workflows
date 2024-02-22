@@ -17,24 +17,25 @@ on:
       test_script_path:
         required: false
         type: string
-        default: ./tasks/coverage.os 
+        default: ./tasks/coverage.os
+      codecov:
+        required: false
+        type: boolean
+        default: false
     secrets:
       SONAR_TOKEN:
         required: false
+      CODECOV_TOKEN:
+        required: false
 
 jobs:
-  sonar:
+  test:
     if: (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
     runs-on: ubuntu-latest
 
     steps:
       - name: Актуализация
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Вычисление имени ветки
-        uses: nelonoel/branch-name@v1.0.1
 
       - name: Вычисление версии OneScript
         shell: bash
@@ -63,12 +64,22 @@ jobs:
       - name: Запуск тестов
         run: oscript ${{ inputs.test_script_path }}
 
-      - name: Сохранение результатов покрытия
-        uses: actions/upload-artifact@v4
+  sonar:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Актуализация
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Вычисление имени ветки
+        uses: nelonoel/branch-name@v1.0.1
+
+      - name: Скачивание артефактов
+        uses: actions/download-artifact@v4
         with:
           name: coverage
-          path: out/coverage.xml
-          if-no-files-found: ignore
 
       - name: Извлечение версии пакета
         shell: bash
@@ -76,7 +87,7 @@ jobs:
         id: extract_version
 
       - name: Настройка sonar-scanner
-        uses: warchant/setup-sonar-scanner@v8
+        uses: warchant/setup-sonar-scanner@v7
 
       - name: Анализ в SonarQube (branch)
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' 
@@ -100,3 +111,24 @@ jobs:
           -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
           -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
           -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
+  
+      
+  coverage:
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: ${{ inputs.github_repository }} == true
+    steps:
+      - name: Актуализация
+        uses: actions/checkout@v4
+
+      - name: Скачивание артефактов
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: autumn-library/autumn
+    
+    
