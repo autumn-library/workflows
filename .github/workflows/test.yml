@@ -11,9 +11,20 @@ on:
         required: false
         type: string
         default: ./tasks/test.os
+      test_script_args:
+        required: false
+        type: string
+        default: ""
+      junit_report_path:
+        required: false
+        type: string
+        default: "out/JUnit"
 
 jobs:
   build:
+    # permissions:
+    #   checks: write
+    #   pull-requests: write
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -57,4 +68,43 @@ jobs:
           opm install -l --dev
           
       - name: Тестирование
-        run: oscript ${{ inputs.test_script_path}}
+        run: oscript ${{ inputs.test_script_path}} ${{ inputs.test_script_args }}
+
+      - name: Загрузка артефактов тестирования
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Test Results (oscript ${{ matrix.oscript_version }} on ${{ matrix.os }})
+          path: ${{ inputs.junit_report_path }}
+          if-no-files-found: ignore
+  
+  publish-test-results:
+    name: "Publish Tests Results"
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+      # only needed for private repository
+      # contents: read
+      # only needed for private repository
+      # issues: read
+    if: always()
+
+    steps:
+      - name: Скачивание артефактов тестирования
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Проверка существования директории с результатами тестов
+        id: check_files
+        uses: andstor/file-existence-action@v2
+        with:
+          files: artifacts/**/*.xml
+
+      - name: Сохранение результатов тестирования
+        if: steps.check_files.outputs.files_exists == 'true'
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: "artifacts/**/*.xml"
