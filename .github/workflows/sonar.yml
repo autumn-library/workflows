@@ -138,6 +138,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: autumn-library/autumn
-          file: out/coverage.xml
+          dir: out
     
     
