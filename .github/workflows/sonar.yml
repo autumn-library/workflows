@@ -138,6 +138,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: autumn-library/autumn
-          dir: out
+          directory: out
     
     
