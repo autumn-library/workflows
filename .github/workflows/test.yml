@@ -11,6 +11,11 @@ on:
         required: false
         type: string
         default: ./tasks/test.os
+      additional_oscript_packages:
+        description: Package list to install, space separated.
+        type: string
+        required: false
+        default: ""
 
 jobs:
   build:
@@ -55,6 +60,10 @@ jobs:
         run: |
           opm install opm
           opm install -l --dev
-          
+      
+      - name: Установка дополнительных пакетов
+        if: inputs.additional_oscript_packages != ''
+        run: opm install -l ${{ inputs.additional_oscript_packages }}
+
       - name: Тестирование
         run: oscript ${{ inputs.test_script_path}}
