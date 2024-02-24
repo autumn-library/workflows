@@ -122,7 +122,6 @@ jobs:
   codecov:
     runs-on: ubuntu-latest
     needs: [test]
-    if: ${{ inputs.github_repository }} == true
     steps:
       - name: Актуализация
         uses: actions/checkout@v4
