@@ -79,6 +79,7 @@ jobs:
           name: coverage
           path: out/*overage*.xml
           if-no-files-found: ignore
+
   sonar:
     runs-on: ubuntu-latest
     needs: [test]
