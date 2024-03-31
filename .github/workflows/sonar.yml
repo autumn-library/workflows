@@ -148,3 +148,18 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ${{ inputs.github_repository }}
           directory: out
+
+  coveralls:
+    runs-on: ubuntu-latest
+    if: inputs.codecov == true
+    needs: [test]
+    steps:
+      - name: Актуализация
+        uses: actions/checkout@v4
+      - name: Скачивание артефактов
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: out
+      - name: Upload coverage reports to Coveralls
+        uses: coverallsapp/github-action@v2
