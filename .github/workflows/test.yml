@@ -62,7 +62,13 @@ jobs:
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
-      - name: Обновление opm
+      - name: Обновление opm (win)
+        if: runner.os == 'windows-latest'
+        shell: cmd
+        run: opm install opm
+
+      - name: Обновление opm (*nix)
+        if: runner.os != 'windows-latest'
         run: opm install opm
           
       - name: Установка зависимостей
