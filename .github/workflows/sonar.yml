@@ -23,14 +23,12 @@ on:
         type: string
         required: false
         default: ""
-      codecov:
+      coveralls:
         required: false
         type: boolean
         default: false
     secrets:
       SONAR_TOKEN:
-        required: false
-      CODECOV_TOKEN:
         required: false
 
 jobs:
@@ -128,30 +126,10 @@ jobs:
           -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
           -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
           -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
-      
-  codecov:
-    runs-on: ubuntu-latest
-    if: inputs.codecov == true
-    needs: [test]
-    steps:
-      - name: Актуализация
-        uses: actions/checkout@v4
-
-      - name: Скачивание артефактов
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage
-          path: out
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.1.1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: ${{ inputs.github_repository }}
-          directory: out
 
   coveralls:
     runs-on: ubuntu-latest
-    if: inputs.codecov == true
+    if: inputs.coveralls == true
     needs: [test]
     steps:
       - name: Актуализация
@@ -161,5 +139,5 @@ jobs:
         with:
           name: coverage
           path: out
-      - name: Upload coverage reports to Coveralls
+      - name: Отправка отчёта о покрытии в Coveralls
         uses: coverallsapp/github-action@v2
