@@ -63,15 +63,18 @@ jobs:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
       - name: Обновление opm
-        run: opm install opm
+        run: |
+          opm install opm
           
       - name: Установка зависимостей
         if: steps.cache.outputs.cache-hit != 'true' 
-        run: opm install -l --dev
+        run: |
+          opm install -l --dev
   
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
-        run: opm install -l ${{ inputs.additional_oscript_packages }}
+        run: |
+          opm install -l ${{ inputs.additional_oscript_packages }}
 
       - name: Тестирование
         run: oscript ${{ inputs.test_script_path}}
