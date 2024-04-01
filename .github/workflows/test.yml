@@ -31,6 +31,12 @@ jobs:
       - name: Актуализация
         uses: actions/checkout@v4
 
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: oscript_modules
+          key: ${{ runner.os }}-${{ hashFiles('packagedef') }}
+
       - name: Установка свойств git
         shell: bash
         run: |
@@ -56,11 +62,13 @@ jobs:
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
+      - name: Обновление opm
+        run: opm install opm
+          
       - name: Установка зависимостей
-        run: |
-          opm install opm
-          opm install -l --dev
-      
+        if: steps.cache.outputs.cache-hit != 'true' 
+        run: opm install -l --dev
+  
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
         run: opm install -l ${{ inputs.additional_oscript_packages }}
