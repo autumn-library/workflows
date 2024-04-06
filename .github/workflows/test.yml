@@ -63,9 +63,12 @@ jobs:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
       - name: Обновление opm (win)
-        run: |
-          opm install opm
-          echo ""
+        if: runner.os == 'Windows'
+        run: call opm install opm
+
+      - name: Обновление opm (*nix)
+        if: runner.os != 'Windows'
+        run: opm install opm
           
       - name: Установка зависимостей
         if: steps.cache.outputs.cache-hit != 'true' 
