@@ -64,6 +64,7 @@ jobs:
 
       - name: Обновление opm (win)
         if: runner.os == 'Windows'
+        shell: cmd
         run: call opm install opm
 
       - name: Обновление opm (*nix)
