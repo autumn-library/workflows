@@ -52,7 +52,7 @@ jobs:
       - name: Установка зависимостей
         run: |
           opm install opm
-          opm install
+          opm install -l
 
       - name: Сборка пакета
         run: opm build .
