@@ -17,29 +17,28 @@ on:
       test_script_path:
         required: false
         type: string
-        default: ./tasks/coverage.os 
+        default: ./tasks/coverage.os
       additional_oscript_packages:
         description: Package list to install, space separated.
         type: string
         required: false
         default: ""
+      coveralls:
+        required: false
+        type: boolean
+        default: false
     secrets:
       SONAR_TOKEN:
         required: false
 
 jobs:
-  sonar:
-    if: (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
+
+  test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Актуализация
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Вычисление имени ветки
-        uses: nelonoel/branch-name@v1.0.1
 
       - name: Вычисление версии OneScript
         shell: bash
@@ -72,6 +71,32 @@ jobs:
       - name: Запуск тестов
         run: oscript ${{ inputs.test_script_path }}
 
+      - name: Сохранение артефактов покрытия
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: out/*overage*.xml
+          if-no-files-found: ignore
+
+  sonar:
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
+    steps:
+      - name: Актуализация
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Вычисление имени ветки
+        uses: nelonoel/branch-name@v1.0.1
+
+      - name: Скачивание артефактов
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: out
+
       - name: Извлечение версии пакета
         shell: bash
         run: echo "version=`cat packagedef | grep ".Версия(" | sed 's|[^"]*"||' | sed -r 's/".+//'`" >> $GITHUB_OUTPUT
@@ -102,3 +127,18 @@ jobs:
           -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
           -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
           -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
+
+  coveralls:
+    runs-on: ubuntu-latest
+    if: inputs.coveralls == true
+    needs: [test]
+    steps:
+      - name: Актуализация
+        uses: actions/checkout@v4
+      - name: Скачивание артефактов
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: out
+      - name: Отправка отчёта о покрытии в Coveralls
+        uses: coverallsapp/github-action@v2
