@@ -1,4 +1,4 @@
-name: Контроль качества
+name: Публикация документации
 
 on:
   workflow_call:
@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  delpoy:
+  deploy:
     if: (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
     runs-on: ubuntu-latest
 
