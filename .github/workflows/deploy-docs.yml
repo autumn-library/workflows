@@ -1,0 +1,21 @@
+name: Контроль качества
+
+on:
+  workflow_call:
+    inputs:
+      github_repository:
+        required: true
+        type: string
+
+jobs:
+  delpoy:
+    if: (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Event Dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.TRIGGER_DOCS_DEPLOY_TOKEN }}
+          repository: autumn-library/autumn-library.github.io
+          event-type: deploy
