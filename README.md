@@ -88,9 +88,9 @@ jobs:
 
 Данный пример запустит задачу на трех операционных системах с тремя разными версиями oscript - 1.8.4 (так как она указана в packagedef), последней релизной версии и последней ночной сборке.
 
-## Контроль качества (SonarQube)
+## Контроль качества (SonarQube + Coveralls)
 
-Сборочная линия для выполнения анализа качества кода с помощью SonarQube. Поддерживается запуск из ветки, из pull request и ручной запуск из информации о конкретном workflow. Анализ pull request из форков пока не поддерживается.
+Сборочная линия для выполнения анализа качества кода с помощью SonarQube и отправки данных о покрытии в [coveralls](https://coveralls.io). Поддерживается запуск из ветки, из pull request и ручной запуск из информации о конкретном workflow. Анализ pull request из форков для задачи SonarQube пока не поддерживается.
 
 Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml)
 
@@ -103,6 +103,7 @@ jobs:
 | test_script_path            | Путь к скрипту запуска тестов                                                                                                                                                                                                                                                  | ./tasks/coverage.os      |
 | additional_oscript_packages | Список дополнительных пакетов oscript для установки, разделенный пробелами                                                                                                                                                                                                     |                          |
 | sonar_host_url              | URL сервера SonarQube                                                                                                                                                                                                                                                          | https://sonar.openbsl.ru |
+| coveralls                   | Флаг отправки результатов покрытия на портал [coveralls](https://coveralls.io)                                                                                                                                                                                                 | false                    |
 
 Секреты:
 
@@ -127,6 +128,28 @@ jobs:
     uses: autumn-library/workflows/.github/workflows/sonar.yml@v1
     with:
       github_repository: autumn-library/annotations # change me!
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+```
+
+### Интеграция с Coveralls
+
+Перед выполнением первого анализа добавьте свой проект в сервис [coveralls](https://coveralls.io). Выставьте флаг `coveralls: true` и дождитесь результатов анализа.
+
+```yaml
+name: Контроль качества
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  sonar:
+    uses: autumn-library/workflows/.github/workflows/sonar.yml@v1
+    with:
+      github_repository: autumn-library/annotations # change me!
+      coveralls: true
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 ```
