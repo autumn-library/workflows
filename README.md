@@ -192,5 +192,5 @@ jobs:
     with:
       package_mask: "annotations-*.ospx" # change me!
     secrets:
-      PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PUSH_TOKEN: ${{ secrets.PUSH_TOKEN }}
 ```
