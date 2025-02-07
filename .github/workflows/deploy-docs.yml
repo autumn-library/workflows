@@ -16,8 +16,6 @@ jobs:
       - name: Event Dispatch
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ env.TRIGGER_DOCS_DEPLOY_TOKEN }}
+          token: ${{ secrets.TRIGGER_DOCS_DEPLOY_TOKEN }}
           repository: autumn-library/autumn-library.github.io
           event-type: deploy
-        env:
-          TRIGGER_DOCS_DEPLOY_TOKEN: ${{ secrets.PUSH_TOKEN }}
