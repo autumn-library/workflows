@@ -6,6 +6,10 @@ on:
       github_repository:
         required: true
         type: string
+    secrets:
+      TRIGGER_DOCS_DEPLOY_TOKEN:
+        required: true
+        description: "Токен для триггера начала сборки документации. Должен иметь scope repo и доступ к autumn-library/autumn-library.github.io"
 
 jobs:
   deploy:
