@@ -14,10 +14,30 @@ on:
         required: false
         default: 'https://sonar.openbsl.ru'
         type: string
-      test_script_path:
+
+      test_dir_paths:
+        description: Comma-separated list of paths to test directories.
         required: false
         type: string
-        default: ./tasks/coverage.os
+      test_file_paths:
+        description: Comma-separated list of paths to test files.
+        required: false
+        type: string
+      test_tags:
+        description: Comma-separated list of tags to run.
+        required: false
+        type: string
+      test_default_timeout:
+        description: Timeout in seconds for each test.
+        required: false
+        type: number
+        default: 0
+      test_log_mod:
+        description: Log mode for tests.
+        required: false
+        type: string
+        default: "tree"
+
       additional_oscript_packages:
         description: Package list to install, space separated.
         type: string
@@ -62,6 +82,7 @@ jobs:
       - name: Установка зависимостей пакета
         run: |
           opm install opm
+          opm install oneunit
           opm install -l --dev
 
       - name: Установка дополнительных пакетов
@@ -69,13 +90,39 @@ jobs:
         run: opm install -l ${{ inputs.additional_oscript_packages }}
 
       - name: Запуск тестов
-        run: oscript ${{ inputs.test_script_path }}
+        run: |
+          set -ex
+
+          OPTS=""
+
+          if [ "${{ inputs.test_dir_paths }}" -ne "" ]
+          then
+            OPTS="$OPTS -d ${{ inputs.test_dir_paths }}"
+          fi
+
+          if [ "${{ inputs.test_file_paths }}" -ne "" ]
+          then
+            OPTS="$OPTS -f ${{ inputs.test_file_paths }}"
+          fi
+
+          if [ "${{ inputs.test_tags }}" -ne "" ]
+          then
+            OPTS="$OPTS -t ${{ inputs.test_tags }}"
+          fi
+
+          oneunit e $OPTS \
+            --timeout  ${{ inputs.test_default_timeout }} \
+            --mode ${{ inputs.test_log_mod }} \
+            --genericExecution out/genericExecution.xml \
+            --genericCoverage out/genericCoverage.xml
 
       - name: Сохранение артефактов покрытия
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: out/*overage*.xml
+          path: |
+            out/genericCoverage.xml
+            out/genericExecution.xml
           if-no-files-found: ignore
 
   sonar:
