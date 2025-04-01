@@ -90,22 +90,23 @@ jobs:
         run: opm install -l ${{ inputs.additional_oscript_packages }}
 
       - name: Запуск тестов
+        shell: bash
         run: |
           set -ex
 
           OPTS=""
 
-          if [ "${{ inputs.test_dir_paths }}" -ne "" ]
+          if [ "${{ inputs.test_dir_paths }}" != "" ]
           then
             OPTS="$OPTS -d ${{ inputs.test_dir_paths }}"
           fi
 
-          if [ "${{ inputs.test_file_paths }}" -ne "" ]
+          if [ "${{ inputs.test_file_paths }}" != "" ]
           then
             OPTS="$OPTS -f ${{ inputs.test_file_paths }}"
           fi
 
-          if [ "${{ inputs.test_tags }}" -ne "" ]
+          if [ "${{ inputs.test_tags }}" != "" ]
           then
             OPTS="$OPTS -t ${{ inputs.test_tags }}"
           fi
