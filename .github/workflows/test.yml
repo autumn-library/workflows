@@ -3,10 +3,29 @@ name: Тестирование
 on: 
   workflow_call:
     inputs:
+
+      # General inputs
       oscript_version:
         required: false
         type: string
         default: "default"
+      additional_oscript_packages:
+        description: Package list to install, space separated.
+        type: string
+        required: false
+      test_engine:
+        description: Test engine to use. Can be one of 'oneunit', '1testrunner'.
+        type: string
+        required: false
+        default: "oneunit"
+
+      # 1testrunner inputs
+      test_script_path:
+        required: false
+        type: string
+        default: ./tasks/test.os
+
+      # OneUnit inputs
       test_dir_paths:
         description: Comma-separated list of paths to test directories.
         required: false
@@ -29,10 +48,6 @@ on:
         required: false
         type: string
         default: "tree"
-      additional_oscript_packages:
-        description: Package list to install, space separated.
-        type: string
-        required: false
 
 jobs:
   build:
@@ -43,7 +58,9 @@ jobs:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         oscript_version: 
           - ${{ inputs.oscript_version }}
-        
+        test_engine:
+          - ${{ inputs.test_engine }}
+
     steps:
       - name: Актуализация
         uses: actions/checkout@v4.2.2
@@ -53,7 +70,7 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      
+
       - name: Вычисление версии OneScript
         shell: bash
         id: extract_oscript_version
@@ -73,15 +90,9 @@ jobs:
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
-      # При запуске в WIN используется git bash для которого нужно sh скрипт сгенерить, чтобы вызывать по имени oneunit а не oneunit.bat
-      - name: Конфигурация OPM
-        if: runner.os == 'Windows'
-        run: opm config --winCreateBashLauncher
-
       - name: Установка зависимостей
         run: |
           opm install opm
-          opm install oneunit
           opm install -l --dev
 
       - name: Установка дополнительных пакетов
@@ -89,6 +100,20 @@ jobs:
         run: opm install -l ${{ inputs.additional_oscript_packages }}
 
       - name: Тестирование
+        if: matrix.test_engine == '1testrunner'
+        run: oscript ${{ inputs.test_script_path}}
+
+      # При запуске в WIN используется git bash для которого нужно sh скрипт сгенерить, чтобы вызывать по имени oneunit а не oneunit.bat
+      - name: Конфигурация OPM
+        if: runner.os == 'Windows' && matrix.test_engine == 'oneunit'
+        run: opm config --winCreateBashLauncher
+
+      - name: Установка oneunit
+        if: matrix.test_engine == 'oneunit'
+        run: opm install oneunit
+
+      - name: Тестирование
+        if: matrix.test_engine == 'oneunit'
         shell: bash
         run: |
           set -ex
