@@ -73,6 +73,11 @@ jobs:
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
+      # При запуске в WIN используется git bash для которого нужно sh скрипт сгенерить, чтобы вызывать по имени oneunit а не oneunit.bat
+      - name: Конфигурация OPM
+        if: runner.os == 'Windows'
+        run: opm config --winCreateBashLauncher
+
       - name: Установка зависимостей
         run: |
           opm install opm
@@ -106,4 +111,3 @@ jobs:
           fi
 
           oneunit e $OPTS --timeout  ${{ inputs.test_default_timeout }} --mode ${{ inputs.test_log_mod }}
-
