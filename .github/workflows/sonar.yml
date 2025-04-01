@@ -115,13 +115,15 @@ jobs:
             --timeout  ${{ inputs.test_default_timeout }} \
             --mode ${{ inputs.test_log_mod }} \
             --genericExecution out/genericExecution.xml \
-            --genericCoverage out/genericCoverage.xml
+            --genericCoverage out/genericCoverage.xml \
+            --cobertura out/coverage.xml
 
       - name: Сохранение артефактов покрытия
         uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: |
+            out/coverage.xml
             out/genericCoverage.xml
             out/genericExecution.xml
           if-no-files-found: ignore
