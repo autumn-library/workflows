@@ -29,7 +29,7 @@ jobs:
         
     steps:
       - name: Актуализация
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Установка свойств git
         shell: bash

@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Актуализация
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Вычисление версии OneScript
         shell: bash
@@ -84,7 +84,7 @@ jobs:
     if: (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
     steps:
       - name: Актуализация
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
 
@@ -134,7 +134,7 @@ jobs:
     needs: [test]
     steps:
       - name: Актуализация
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
       - name: Скачивание артефактов
         uses: actions/download-artifact@v4
         with:
