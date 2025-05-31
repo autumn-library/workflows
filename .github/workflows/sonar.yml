@@ -85,7 +85,7 @@ jobs:
   sonar:
     runs-on: ubuntu-latest
     needs: [test]
-    if: (inputs.sonarqube == true) && (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
+    if: ${{ (inputs.sonarqube == true) && (github.repository == inputs.github_repository) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name) }} 
     steps:
       - name: Актуализация
         uses: actions/checkout@v4.2.2
