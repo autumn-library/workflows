@@ -103,6 +103,7 @@ jobs:
 | test_script_path            | Путь к скрипту запуска тестов                                                                                                                                                                                                                                                  | ./tasks/coverage.os      |
 | additional_oscript_packages | Список дополнительных пакетов oscript для установки, разделенный пробелами                                                                                                                                                                                                     |                          |
 | sonar_host_url              | URL сервера SonarQube                                                                                                                                                                                                                                                          | https://sonar.openbsl.ru |
+| sonarqube                   | Флаг отправки результатов анализа на сервер SonarQube                                                                                                                                                                                                                          | true                     |
 | coveralls                   | Флаг отправки результатов покрытия на портал [coveralls](https://coveralls.io)                                                                                                                                                                                                 | false                    |
 
 Секреты:
@@ -131,6 +132,10 @@ jobs:
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 ```
+
+### Отключение анализа SonarQube
+
+По умолчанию анализ SonarQube включён, однако это можно изменить, выставив свойство `sonarqube: false`.
 
 ### Интеграция с Coveralls
 
