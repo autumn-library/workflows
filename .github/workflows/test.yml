@@ -3,19 +3,51 @@ name: Тестирование
 on: 
   workflow_call:
     inputs:
+
+      # General inputs
       oscript_version:
         required: false
+        type: string
         default: "default"
-        type: string
-      test_script_path:
-        required: false
-        type: string
-        default: ./tasks/test.os
       additional_oscript_packages:
         description: Package list to install, space separated.
         type: string
         required: false
-        default: ""
+      test_engine:
+        description: Test engine to use. Can be one of 'oneunit', '1testrunner'.
+        type: string
+        required: false
+        default: "oneunit"
+
+      # 1testrunner inputs
+      test_script_path:
+        required: false
+        type: string
+        default: ./tasks/test.os
+
+      # OneUnit inputs
+      test_dir_paths:
+        description: Comma-separated list of paths to test directories.
+        required: false
+        type: string
+      test_file_paths:
+        description: Comma-separated list of paths to test files.
+        required: false
+        type: string
+      test_tags:
+         description: Comma-separated list of tags to run.
+         required: false
+         type: string
+      test_default_timeout:
+        description: Timeout in seconds for each test.
+        required: false
+        type: number
+        default: 0
+      test_log_mod:
+        description: Log mode for tests.
+        required: false
+        type: string
+        default: "tree"
 
 jobs:
   build:
@@ -26,7 +58,9 @@ jobs:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         oscript_version: 
           - ${{ inputs.oscript_version }}
-        
+        test_engine:
+          - ${{ inputs.test_engine }}
+
     steps:
       - name: Актуализация
         uses: actions/checkout@v4.2.2
@@ -36,7 +70,7 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      
+
       - name: Вычисление версии OneScript
         shell: bash
         id: extract_oscript_version
@@ -60,10 +94,45 @@ jobs:
         run: |
           opm install opm
           opm install -l --dev
-      
+
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
         run: opm install -l ${{ inputs.additional_oscript_packages }}
 
       - name: Тестирование
+        if: matrix.test_engine == '1testrunner'
         run: oscript ${{ inputs.test_script_path}}
+
+      # При запуске в WIN используется git bash для которого нужно sh скрипт сгенерить, чтобы вызывать по имени oneunit а не oneunit.bat
+      - name: Конфигурация OPM
+        if: runner.os == 'Windows' && matrix.test_engine == 'oneunit'
+        run: opm config --winCreateBashLauncher
+
+      - name: Установка oneunit
+        if: matrix.test_engine == 'oneunit'
+        run: opm install oneunit
+
+      - name: Тестирование
+        if: matrix.test_engine == 'oneunit'
+        shell: bash
+        run: |
+          set -ex
+
+          OPTS=""
+
+          if [ "${{ inputs.test_dir_paths }}" != "" ]
+          then
+            OPTS="$OPTS -d ${{ inputs.test_dir_paths }}"
+          fi
+
+          if [ "${{ inputs.test_file_paths }}" != "" ]
+          then
+            OPTS="$OPTS -f ${{ inputs.test_file_paths }}"
+          fi
+
+          if [ "${{ inputs.test_tags }}" != "" ]
+          then
+            OPTS="$OPTS -t ${{ inputs.test_tags }}"
+          fi
+
+          oneunit e $OPTS --timeout  ${{ inputs.test_default_timeout }} --mode ${{ inputs.test_log_mod }}
