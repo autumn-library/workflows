@@ -36,7 +36,7 @@ lib.system=../oscript_modules
 | test_script_path            | Путь к скрипту запуска тестов                                                                                                                                                                                                                                                  | ./tasks/test.os       |
 | additional_oscript_packages | Список дополнительных пакетов oscript для установки, разделенный пробелами                                                                                                                                                                                                     |                       |
 | dotnet_version              | Версия .NET для установки                                                                                                                                                                                                                                                      |                       |
-| execute_opm_build           | Выполнить 'opm build .' после установки зависимостей                                                                                                                                                                                                                           | false                 |
+| build_package               | Выполнить сборку пакета перед выполнением тестов                                                                                                                                                                                                                               | false                 |
 
 ### Использование
 
@@ -108,7 +108,7 @@ jobs:
 | sonarqube                   | Флаг отправки результатов анализа на сервер SonarQube                                                                                                                                                                                                                          | true                     |
 | coveralls                   | Флаг отправки результатов покрытия на портал [coveralls](https://coveralls.io)                                                                                                                                                                                                 | false                    |
 | dotnet_version              | Версия .NET для установки                                                                                                                                                                                                                                                      |                          |
-| execute_opm_build           | Выполнить 'opm build .' после установки зависимостей                                                                                                                                                                                                                           | false                    |
+| build_package               | Выполнить сборку пакета перед выполнением тестов                                                                                                                                                                                                                               | false                    |
 
 Секреты:
 

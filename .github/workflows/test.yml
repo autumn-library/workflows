@@ -21,7 +21,7 @@ on:
         type: string
         required: false
         default: ""
-      execute_opm_build:
+      build_package:
         description: Execute 'opm build .' after installing dependencies
         type: boolean
         required: false
@@ -82,7 +82,7 @@ jobs:
         run: opm install -l ${{ inputs.additional_oscript_packages }}
 
       - name: Сборка пакета
-        if: inputs.execute_opm_build == true
+        if: inputs.build_package == true
         run: opm build .
 
       - name: Тестирование
