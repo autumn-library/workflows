@@ -70,7 +70,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(format('["{0}"]', join(split(inputs.os_versions, ' '), '","'))) }}
+        os: ${{ fromJSON(format('["{}"]', replace(inputs.os_versions, ' ', '","'))) }}
         oscript_version: 
           - ${{ inputs.oscript_version }}
         test_engine:
