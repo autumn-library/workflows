@@ -27,44 +27,18 @@ on:
         required: false
         default: false
       os_versions:
-        description: Operating systems to run tests on, space separated.
+        description: Operating systems to run tests on, JSON array format.
         type: string
         required: false
-        default: "ubuntu-latest windows-latest macos-latest"
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      os-matrix: ${{ steps.set-matrix.outputs.os-matrix }}
-    steps:
-      - name: Prepare OS matrix
-        id: set-matrix
-        run: |
-          # Process os_versions input to create proper JSON array
-          OS_INPUT="${{ inputs.os_versions }}"
-
-          # Handle empty input - use default
-          if [ -z "${OS_INPUT// }" ]; then
-            OS_INPUT="ubuntu-latest windows-latest macos-latest"
-          fi
-
-          # Convert space-separated list to JSON array
-          # Split by spaces, filter out empty entries, and create JSON
-          OS_ARRAY=$(echo "$OS_INPUT" | tr ' ' '\n' | \
-            grep -v '^$' | sed 's/.*/"&"/' | \
-            paste -sd ',' - | sed 's/.*/[&]/')
-
-          echo "os-matrix=$OS_ARRAY" >> $GITHUB_OUTPUT
-          echo "Generated OS matrix: $OS_ARRAY"
-
   build:
-    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(needs.prepare.outputs.os-matrix) }}
+        os: ${{ fromJSON(inputs.os_versions) }}
         oscript_version:
           - ${{ inputs.oscript_version }}
 
