@@ -41,6 +41,11 @@ on:
         type: boolean
         required: false
         default: false
+      os_version:
+        description: Operating system to run quality control on
+        type: string
+        required: false
+        default: "ubuntu-latest"
     secrets:
       SONAR_TOKEN:
         required: false
@@ -48,7 +53,7 @@ on:
 jobs:
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
 
     steps:
       - name: Актуализация
@@ -103,7 +108,7 @@ jobs:
           if-no-files-found: ignore
 
   sonar:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
     needs: [test]
     if: ${{ (inputs.sonarqube == true) && (github.repository == inputs.github_repository) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name) }} 
     steps:
@@ -153,7 +158,7 @@ jobs:
           -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
 
   coveralls:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
     if: inputs.coveralls == true
     needs: [test]
     steps:

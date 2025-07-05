@@ -20,6 +20,11 @@ on:
         type: string
         required: false
         default: ""
+      os_version:
+        description: Operating system to run release on
+        type: string
+        required: false
+        default: "ubuntu-latest"
     secrets:
       PUSH_TOKEN:
         required: false
@@ -29,7 +34,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
     steps:
       # Загрузка проекта
       - name: Актуализация

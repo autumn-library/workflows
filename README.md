@@ -37,7 +37,7 @@ lib.system=../oscript_modules
 | additional_oscript_packages | Список дополнительных пакетов oscript для установки, разделенный пробелами                                                                                                                                                                                                     |                       |
 | dotnet_version              | Версия .NET для установки                                                                                                                                                                                                                                                      |                       |
 | build_package               | Выполнить сборку пакета перед выполнением тестов                                                                                                                                                                                                                               | false                 |
-| os_list                     | Список операционных систем для запуска тестов, разделенный пробелами                                                                                                                                                                                                          | ubuntu-latest windows-latest macos-latest |
+| os_versions                 | Список операционных систем для запуска тестов, разделенный пробелами                                                                                                                                                                                                          | ubuntu-latest windows-latest macos-latest |
 
 ### Использование
 
@@ -105,7 +105,7 @@ jobs:
   test:
     uses: autumn-library/workflows/.github/workflows/test.yml@v1
     with:
-      os_list: "ubuntu-latest windows-latest"
+      os_versions: "ubuntu-latest windows-latest"
 ```
 
 Данный пример запустит задачу тестирования только на Ubuntu и Windows, исключив macOS.
@@ -124,7 +124,7 @@ jobs:
   test:
     uses: autumn-library/workflows/.github/workflows/test.yml@v1
     with:
-      os_list: "ubuntu-latest"
+      os_versions: "ubuntu-latest"
 ```
 
 Данный пример запустит задачу тестирования только на Ubuntu.
@@ -148,6 +148,7 @@ jobs:
 | coveralls                   | Флаг отправки результатов покрытия на портал [coveralls](https://coveralls.io)                                                                                                                                                                                                 | false                    |
 | dotnet_version              | Версия .NET для установки                                                                                                                                                                                                                                                      |                          |
 | build_package               | Выполнить сборку пакета перед выполнением тестов                                                                                                                                                                                                                               | false                    |
+| os_version                  | Операционная система для запуска контроля качества                                                                                                                                                                                                                             | ubuntu-latest            |
 
 Секреты:
 
@@ -215,6 +216,7 @@ jobs:
 | oscript_version       | Версия движка в формате алиаса для https://github.com/oscript-library/ovm. Если имеет значение `default`, производится попытка вычисления версии среды на основании вызова метода ВерсияСреды() в packagedef. Если вычислить версию не получается, используется версия stable. | default |
 | package_mask      | Файловая маска собранного пакета. Несмотря на необязательность параметра, рекомендуется его передавать до исправления ошибки в шаге публикации в хаб | *.ospx |
 | dotnet_version        | Версия .NET для установки                                                                               |                                                                                         |
+| os_version            | Операционная система для запуска релиза                                                                | ubuntu-latest                                                                           |
 
 Секреты:
 
