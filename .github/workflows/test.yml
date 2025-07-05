@@ -1,6 +1,6 @@
 name: Тестирование
 
-on: 
+on:
   workflow_call:
     inputs:
       oscript_version:
@@ -33,15 +33,41 @@ on:
         default: "ubuntu-latest windows-latest macos-latest"
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      os-matrix: ${{ steps.set-matrix.outputs.os-matrix }}
+    steps:
+      - name: Prepare OS matrix
+        id: set-matrix
+        run: |
+          # Process os_versions input to create proper JSON array
+          OS_INPUT="${{ inputs.os_versions }}"
+
+          # Handle empty input - use default
+          if [ -z "${OS_INPUT// }" ]; then
+            OS_INPUT="ubuntu-latest windows-latest macos-latest"
+          fi
+
+          # Convert space-separated list to JSON array
+          # Split by spaces, filter out empty entries, and create JSON
+          OS_ARRAY=$(echo "$OS_INPUT" | tr ' ' '\n' | \
+            grep -v '^$' | sed 's/.*/"&"/' | \
+            paste -sd ',' - | sed 's/.*/[&]/')
+
+          echo "os-matrix=$OS_ARRAY" >> $GITHUB_OUTPUT
+          echo "Generated OS matrix: $OS_ARRAY"
+
   build:
+    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(format('["{}"]', replace(inputs.os_versions, ' ', '","'))) }}
-        oscript_version: 
+        os: ${{ fromJSON(needs.prepare.outputs.os-matrix) }}
+        oscript_version:
           - ${{ inputs.oscript_version }}
-        
+
     steps:
       - name: Актуализация
         uses: actions/checkout@v4.2.2
@@ -50,14 +76,15 @@ jobs:
         shell: bash
         run: |
           git config --global user.name "GitHub Actions"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
-      
+
       - name: Вычисление версии OneScript
         shell: bash
         id: extract_oscript_version
@@ -65,7 +92,9 @@ jobs:
           set -ex
           if [ "${{ inputs.oscript_version }}" = "default" ]
           then
-            extracted_version=$(cat packagedef | grep ".ВерсияСреды(" | sed 's|[^"]*"||' | sed -r 's/".+//' || true)
+            extracted_version=$(cat packagedef | \
+              grep ".ВерсияСреды(" | sed 's|[^"]*"||' | \
+              sed -r 's/".+//' || true)
             version="${extracted_version:-stable}"
           else
             version="${{ inputs.oscript_version }}"
@@ -81,7 +110,7 @@ jobs:
         run: |
           opm install opm
           opm install -l --dev
-      
+
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
         run: opm install -l ${{ inputs.additional_oscript_packages }}
