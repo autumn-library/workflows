@@ -24,7 +24,7 @@ lib.system=../oscript_modules
 
 ## Тестирование
 
-Сборочная линия для выполнения тестирования библиотеки. Позволяет запустить матричную сборку на Windows, Ubuntu и macOS на нескольких версиях движка OneScript. Поддерживается запуск из ветки, из pull request и ручной запуск из информации о конкретном workflow.
+Сборочная линия для выполнения тестирования библиотеки. Позволяет запустить матричную сборку на настраиваемом списке операционных систем (по умолчанию Windows, Ubuntu и macOS) на нескольких версиях движка OneScript. Поддерживается запуск из ветки, из pull request и ручной запуск из информации о конкретном workflow.
 
 Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/test.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/test.yml)
 
@@ -37,6 +37,7 @@ lib.system=../oscript_modules
 | additional_oscript_packages | Список дополнительных пакетов oscript для установки, разделенный пробелами                                                                                                                                                                                                     |                       |
 | dotnet_version              | Версия .NET для установки                                                                                                                                                                                                                                                      |                       |
 | build_package               | Выполнить сборку пакета перед выполнением тестов                                                                                                                                                                                                                               | false                 |
+| os_list                     | Список операционных систем для запуска тестов, разделенный пробелами                                                                                                                                                                                                          | ubuntu-latest windows-latest macos-latest |
 
 ### Использование
 
@@ -55,7 +56,7 @@ jobs:
     uses: autumn-library/workflows/.github/workflows/test.yml@v1
 ``` 
 
-Данный пример запустит задачу тестирования на трех операционных системах: Windows, Ubuntu и macos. 
+Данный пример запустит задачу тестирования на операционных системах по умолчанию: Windows, Ubuntu и macOS. 
 Если в файле packagedef вашей библиотеки есть вызов метода "ВерсияСреды", то будет взято значение из параметра метода. Если вызов ВерсияСреды отсутствует, то запуск тестирования будет проводиться на версии stable. 
 
 При необходимости можно явно указать версию OneScript в параметре `oscript_version`:
@@ -89,6 +90,44 @@ jobs:
 ```
 
 Данный пример запустит задачу на трех операционных системах с тремя разными версиями oscript - 1.8.4 (так как она указана в packagedef), последней релизной версии и последней ночной сборке.
+
+3) Запуск тестирования на определенных операционных системах
+
+```yaml
+name: Тестирование
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: autumn-library/workflows/.github/workflows/test.yml@v1
+    with:
+      os_list: "ubuntu-latest windows-latest"
+```
+
+Данный пример запустит задачу тестирования только на Ubuntu и Windows, исключив macOS.
+
+4) Запуск тестирования только на одной операционной системе
+
+```yaml
+name: Тестирование
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: autumn-library/workflows/.github/workflows/test.yml@v1
+    with:
+      os_list: "ubuntu-latest"
+```
+
+Данный пример запустит задачу тестирования только на Ubuntu.
 
 ## Контроль качества (SonarQube + Coveralls)
 
