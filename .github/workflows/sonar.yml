@@ -43,10 +43,29 @@ on:
         type: string
         required: false
         default: ""
+      sonarqube:
+        required: false
+        type: boolean
+        default: true
       coveralls:
         required: false
         type: boolean
         default: false
+      dotnet_version:
+        description: Version of .NET to install
+        type: string
+        required: false
+        default: ""
+      build_package:
+        description: Execute 'opm build .' after installing dependencies
+        type: boolean
+        required: false
+        default: false
+      os_version:
+        description: Operating system to run quality control on
+        type: string
+        required: false
+        default: "ubuntu-latest"
     secrets:
       SONAR_TOKEN:
         required: false
@@ -54,11 +73,17 @@ on:
 jobs:
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
 
     steps:
       - name: Актуализация
         uses: actions/checkout@v4.2.2
+
+      - name: Установка .NET
+        if: inputs.dotnet_version != ''
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
 
       - name: Вычисление версии OneScript
         shell: bash
@@ -88,6 +113,10 @@ jobs:
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
         run: opm install -l ${{ inputs.additional_oscript_packages }}
+
+      - name: Сборка пакета
+        if: inputs.build_package == true
+        run: opm build .
 
       - name: Запуск тестов
         shell: bash
@@ -129,9 +158,9 @@ jobs:
           if-no-files-found: ignore
 
   sonar:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
     needs: [test]
-    if: (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
+    if: ${{ (inputs.sonarqube == true) && (github.repository == inputs.github_repository) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name) }} 
     steps:
       - name: Актуализация
         uses: actions/checkout@v4.2.2
@@ -179,7 +208,7 @@ jobs:
           -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
 
   coveralls:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
     if: inputs.coveralls == true
     needs: [test]
     steps:

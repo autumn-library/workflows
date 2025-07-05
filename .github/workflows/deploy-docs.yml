@@ -6,6 +6,11 @@ on:
       github_repository:
         required: true
         type: string
+      os_version:
+        description: Operating system to run deployment on
+        type: string
+        required: false
+        default: "ubuntu-latest"
     secrets:
       TRIGGER_DOCS_DEPLOY_TOKEN:
         required: true
@@ -14,7 +19,7 @@ on:
 jobs:
   deploy:
     if: (github.repository == ${{ inputs.github_repository }} ) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name)
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
 
     steps:
       - name: Event Dispatch

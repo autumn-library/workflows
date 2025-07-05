@@ -15,6 +15,16 @@ on:
         required: false
         type: string
         default: "*.ospx"
+      dotnet_version:
+        description: Version of .NET to install
+        type: string
+        required: false
+        default: ""
+      os_version:
+        description: Operating system to run release on
+        type: string
+        required: false
+        default: "ubuntu-latest"
     secrets:
       PUSH_TOKEN:
         required: false
@@ -24,11 +34,17 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os_version }}
     steps:
       # Загрузка проекта
       - name: Актуализация
         uses: actions/checkout@v4.2.2
+
+      - name: Установка .NET
+        if: inputs.dotnet_version != ''
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
 
       - name: Вычисление версии OneScript
         shell: bash
