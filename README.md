@@ -37,7 +37,7 @@ lib.system=../oscript_modules
 | additional_oscript_packages | Список дополнительных пакетов oscript для установки, разделенный пробелами                                                                                                                                                                                                     |                       |
 | dotnet_version              | Версия .NET для установки                                                                                                                                                                                                                                                      |                       |
 | build_package               | Выполнить сборку пакета перед выполнением тестов                                                                                                                                                                                                                               | false                 |
-| os_versions                 | Список операционных систем для запуска тестов, разделенный пробелами                                                                                                                                                                                                          | ubuntu-latest windows-latest macos-latest |
+| os_versions                 | Список операционных систем для запуска тестов строкой в формате json-array                                                                                                                                                                                                     | '["ubuntu-latest", "windows-latest", "macos-latest"]' |
 
 ### Использование
 
@@ -105,7 +105,7 @@ jobs:
   test:
     uses: autumn-library/workflows/.github/workflows/test.yml@v1
     with:
-      os_versions: "ubuntu-latest windows-latest"
+      os_versions: '["ubuntu-latest", "windows-latest"]'
 ```
 
 Данный пример запустит задачу тестирования только на Ubuntu и Windows, исключив macOS.
@@ -124,7 +124,7 @@ jobs:
   test:
     uses: autumn-library/workflows/.github/workflows/test.yml@v1
     with:
-      os_versions: "ubuntu-latest"
+      os_versions: '["ubuntu-latest"]'
 ```
 
 Данный пример запустит задачу тестирования только на Ubuntu.
