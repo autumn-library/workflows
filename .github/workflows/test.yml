@@ -1,6 +1,6 @@
 name: Тестирование
 
-on:
+on: 
   workflow_call:
     inputs:
       oscript_version:
@@ -39,9 +39,9 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJSON(inputs.os_versions) }}
-        oscript_version:
+        oscript_version: 
           - ${{ inputs.oscript_version }}
-
+        
     steps:
       - name: Актуализация
         uses: actions/checkout@v4.2.2
@@ -50,15 +50,14 @@ jobs:
         shell: bash
         run: |
           git config --global user.name "GitHub Actions"
-          git config --global user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
-
+      
       - name: Вычисление версии OneScript
         shell: bash
         id: extract_oscript_version
@@ -66,9 +65,7 @@ jobs:
           set -ex
           if [ "${{ inputs.oscript_version }}" = "default" ]
           then
-            extracted_version=$(cat packagedef | \
-              grep ".ВерсияСреды(" | sed 's|[^"]*"||' | \
-              sed -r 's/".+//' || true)
+            extracted_version=$(cat packagedef | grep ".ВерсияСреды(" | sed 's|[^"]*"||' | sed -r 's/".+//' || true)
             version="${extracted_version:-stable}"
           else
             version="${{ inputs.oscript_version }}"
@@ -84,7 +81,7 @@ jobs:
         run: |
           opm install opm
           opm install -l --dev
-
+      
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
         run: opm install -l ${{ inputs.additional_oscript_packages }}
