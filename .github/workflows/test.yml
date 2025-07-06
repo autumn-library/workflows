@@ -90,7 +90,7 @@ jobs:
         if: inputs.dotnet_version != ''
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ inputs.dotnet_version }
+          dotnet-version: ${{ inputs.dotnet_version }}
 
       - name: Вычисление версии OneScript
         shell: bash
