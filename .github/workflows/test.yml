@@ -27,10 +27,10 @@ on:
         required: false
         default: false
       os_versions:
-        description: Operating systems to run tests on, space separated.
+        description: Operating systems to run tests on, JSON array format.
         type: string
         required: false
-        default: "ubuntu-latest windows-latest macos-latest"
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
 
 jobs:
   build:
@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(format('["{}"]', replace(inputs.os_versions, ' ', '","'))) }}
+        os: ${{ fromJSON(inputs.os_versions) }}
         oscript_version: 
           - ${{ inputs.oscript_version }}
         
