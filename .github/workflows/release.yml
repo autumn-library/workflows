@@ -59,8 +59,9 @@ jobs:
             version="${{ inputs.oscript_version }}"
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
+      
       - name: Установка OneScript
-        uses: otymko/setup-onescript@v1.5
+        uses: otymko/setup-onescript@v1.5.1
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
