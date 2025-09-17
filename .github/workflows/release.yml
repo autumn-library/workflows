@@ -11,6 +11,11 @@ on:
         required: false
         type: string
         default: "default"
+      opm_version:
+        description: Version of OPM to install (e.g., "latest", "1.18.0")
+        required: false
+        default: "latest"
+        type: string
       package_mask:
         required: false
         type: string
@@ -68,7 +73,7 @@ jobs:
       # Установка зависимостей пакета
       - name: Установка зависимостей
         run: |
-          opm install opm
+          opm install opm@${{ inputs.opm_version }}
           opm install -l
 
       - name: Сборка пакета

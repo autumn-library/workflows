@@ -10,6 +10,11 @@ on:
         required: false
         default: 'default'
         type: string
+      opm_version:
+        description: Version of OPM to install (e.g., "latest", "1.18.0")
+        required: false
+        default: "latest"
+        type: string
       sonar_host_url:
         required: false
         default: 'https://sonar.openbsl.ru'
@@ -86,7 +91,7 @@ jobs:
 
       - name: Установка зависимостей пакета
         run: |
-          opm install opm
+          opm install opm@${{ inputs.opm_version }}
           opm install -l --dev
 
       - name: Установка дополнительных пакетов
