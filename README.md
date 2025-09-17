@@ -130,6 +130,27 @@ jobs:
 
 Данный пример запустит задачу тестирования только на Ubuntu.
 
+5) Запуск с совместимой версией OPM для старых версий OneScript
+
+```yaml
+name: Тестирование
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: autumn-library/workflows/.github/workflows/test.yml@v1
+    with:
+      oscript_version: "1.8.3"  # Старая версия OneScript
+      opm_version: "1.18.0"     # Совместимая версия OPM
+      os_versions: '["ubuntu-latest"]'
+```
+
+Данный пример запустит тестирование на Ubuntu с OneScript 1.8.3 и совместимой версией OPM 1.18.0 вместо последней версии, которая может требовать OneScript 1.8.4+.
+
 ## Контроль качества (SonarQube + Coveralls)
 
 Сборочная линия для выполнения анализа качества кода с помощью SonarQube и отправки данных о покрытии в [coveralls](https://coveralls.io). Поддерживается запуск из ветки, из pull request и ручной запуск из информации о конкретном workflow. Анализ pull request из форков для задачи SonarQube пока не поддерживается.
