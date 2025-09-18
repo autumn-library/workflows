@@ -8,9 +8,9 @@ on:
         default: "default"
         type: string
       opm_version:
-        description: Version of OPM to install (e.g., "latest", "1.18.0")
+        description: Version of OPM to install (e.g., "1.18.0"). If empty, installs the latest version without version specification
         required: false
-        default: "latest"
+        default: ""
         type: string
       test_script_path:
         required: false
@@ -84,7 +84,11 @@ jobs:
 
       - name: Установка зависимостей
         run: |
-          opm install opm@${{ inputs.opm_version }}
+          if [ -n "${{ inputs.opm_version }}" ]; then
+            opm install opm@${{ inputs.opm_version }}
+          else
+            opm install opm
+          fi
           opm install -l --dev
       
       - name: Установка дополнительных пакетов
