@@ -90,6 +90,7 @@ jobs:
           version: ${{ steps.extract_oscript_version.outputs.version }} 
 
       - name: Установка зависимостей пакета
+        shell: bash
         run: |
           if [ -n "${{ inputs.opm_version }}" ]; then
             opm install opm@${{ inputs.opm_version }}
