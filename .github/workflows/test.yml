@@ -82,7 +82,19 @@ jobs:
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
-      - name: Установка зависимостей
+      - name: Установка зависимостей (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          if "${{ inputs.opm_version }}" NEQ "" (
+            opm install opm@${{ inputs.opm_version }}
+          ) else (
+            opm install opm
+          )
+          opm install -l --dev
+
+      - name: Установка зависимостей (Linux/macOS)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           if [ -n "${{ inputs.opm_version }}" ]; then
