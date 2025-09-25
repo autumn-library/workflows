@@ -84,13 +84,13 @@ jobs:
 
       - name: Установка зависимостей (Windows)
         if: runner.os == 'Windows'
-        shell: cmd
+        shell: pwsh
         run: |
-          if "${{ inputs.opm_version }}" NEQ "" (
+          if ("${{ inputs.opm_version }}" -ne "") {
             opm install opm@${{ inputs.opm_version }}
-          ) else (
+          } else {
             opm install opm
-          )
+          }
           opm install -l --dev
 
       - name: Установка зависимостей (Linux/macOS)
