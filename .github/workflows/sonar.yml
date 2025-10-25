@@ -123,7 +123,7 @@ jobs:
         run: oscript ${{ inputs.test_script_path }}
 
       - name: Сохранение артефактов покрытия
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: out/*overage*.xml
