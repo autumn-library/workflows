@@ -62,7 +62,7 @@ jobs:
 
     steps:
       - name: Актуализация
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
@@ -135,7 +135,7 @@ jobs:
     if: ${{ (inputs.sonarqube == true) && (github.repository == inputs.github_repository) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name) }} 
     steps:
       - name: Актуализация
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
         with:
           fetch-depth: 0
 
@@ -185,7 +185,7 @@ jobs:
     needs: [test]
     steps:
       - name: Актуализация
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
       - name: Скачивание артефактов
         uses: actions/download-artifact@v6
         with:
