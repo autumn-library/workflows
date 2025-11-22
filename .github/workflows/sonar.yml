@@ -190,7 +190,9 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: coverage
-          path: out/*overage*.xml
+          path: |
+            out/*overage*.xml
+            out/genericExecution.xml
           if-no-files-found: ignore
 
   sonar:
