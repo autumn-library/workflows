@@ -130,12 +130,17 @@ jobs:
           } else {
             opm install opm
           }
+          opm install -l --dev
+
+      - name: Установка OneUnit (Windows)
+        if: runner.os == 'Windows' && matrix.test_engine == 'oneunit'
+        shell: pwsh
+        run: |
           if ("${{ inputs.oneunit_version }}" -ne "") {
             opm install -l oneunit@${{ inputs.oneunit_version }}
           } else {
             opm install -l oneunit
           }
-          opm install -l --dev
 
       - name: Установка зависимостей (Linux/macOS)
         if: runner.os != 'Windows'
@@ -146,12 +151,17 @@ jobs:
           else
             opm install opm
           fi
+          opm install -l --dev
+
+      - name: Установка OneUnit (Linux/macOS)
+        if: runner.os != 'Windows' && matrix.test_engine == 'oneunit'
+        shell: bash
+        run: |
           if [ -n "${{ inputs.oneunit_version }}" ]; then
             opm install -l oneunit@${{ inputs.oneunit_version }}
           else
             opm install -l oneunit
           fi
-          opm install -l --dev
 
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
