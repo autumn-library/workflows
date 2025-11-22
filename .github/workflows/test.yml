@@ -46,6 +46,11 @@ on:
         default: ./tasks/test.os
 
       # OneUnit inputs
+      oneunit_version:
+        description: Version of OneUnit to install ("0.2.3", "0.3.0"). If empty, installs the latest version
+        required: false
+        type: string
+        default: ''
       test_dir_paths:
         description: Comma-separated list of paths to test directories.
         required: false
@@ -125,6 +130,11 @@ jobs:
           } else {
             opm install opm
           }
+          if ("${{ inputs.oneunit_version }}" -ne "") {
+            opm install -l oneunit@${{ inputs.oneunit_version }}
+          } else {
+            opm install -l oneunit
+          }
           opm install -l --dev
 
       - name: Установка зависимостей (Linux/macOS)
@@ -135,6 +145,11 @@ jobs:
             opm install opm@${{ inputs.opm_version }}
           else
             opm install opm
+          fi
+          if [ -n "${{ inputs.oneunit_version }}" ]; then
+            opm install -l oneunit@${{ inputs.oneunit_version }}
+          else
+            opm install -l oneunit
           fi
           opm install -l --dev
 
