@@ -184,12 +184,7 @@ jobs:
         if: inputs.test_engine == 'oneunit'
         env:
           OPTS: ${{ format('{0} {1} {2}', inputs.test_dir_paths != '' && format('-d {0}', inputs.test_dir_paths) || '', inputs.test_file_paths != '' && format('-f {0}', inputs.test_file_paths) || '', inputs.test_tags != '' && format('-t {0}', inputs.test_tags) || '') }}
-        run: ./oscript_modules/bin/oneunit e $OPTS \
-            --timeout  ${{ inputs.test_default_timeout }} \
-            --mode ${{ inputs.test_log_mod }} \
-            --genericExecution out/genericExecution.xml \
-            --genericCoverage out/genericCoverage.xml \
-            --cobertura out/coverage.xml
+        run: ./oscript_modules/bin/oneunit e $OPTS --timeout  ${{ inputs.test_default_timeout }} --mode ${{ inputs.test_log_mod }} --genericExecution out/genericExecution.xml --genericCoverage out/genericCoverage.xml --cobertura out/coverage.xml
 
       - name: Сохранение артефактов покрытия
         uses: actions/upload-artifact@v5
