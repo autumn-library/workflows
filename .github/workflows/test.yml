@@ -9,16 +9,11 @@ on:
         required: false
         type: string
         default: "default"
-        type: string
       opm_version:
         description: Version of OPM to install (e.g., "1.1.0"). If empty, installs the latest version without version specification
         required: false
         default: ""
         type: string
-      test_script_path:
-        required: false
-        type: string
-        default: ./tasks/test.os
       additional_oscript_packages:
         description: Package list to install, space separated.
         type: string
@@ -27,7 +22,7 @@ on:
         description: Test engine to use. Can be one of 'oneunit', '1testrunner'.
         type: string
         required: false
-        default: "oneunit"
+        default: "1testrunner"
       dotnet_version:
         description: Version of .NET to install
         type: string
@@ -81,7 +76,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJSON(inputs.os_versions) }}
-        oscript_version: 
+        oscript_version:
           - ${{ inputs.oscript_version }}
         test_engine:
           - ${{ inputs.test_engine }}
@@ -160,31 +155,8 @@ jobs:
         if: runner.os == 'Windows' && matrix.test_engine == 'oneunit'
         run: opm config --winCreateBashLauncher
 
-      - name: Установка oneunit
-        if: matrix.test_engine == 'oneunit'
-        run: opm install oneunit
-
       - name: Тестирование
         if: matrix.test_engine == 'oneunit'
-        shell: bash
-        run: |
-          set -ex
-
-          OPTS=""
-
-          if [ "${{ inputs.test_dir_paths }}" != "" ]
-          then
-            OPTS="$OPTS -d ${{ inputs.test_dir_paths }}"
-          fi
-
-          if [ "${{ inputs.test_file_paths }}" != "" ]
-          then
-            OPTS="$OPTS -f ${{ inputs.test_file_paths }}"
-          fi
-
-          if [ "${{ inputs.test_tags }}" != "" ]
-          then
-            OPTS="$OPTS -t ${{ inputs.test_tags }}"
-          fi
-
-          oneunit e $OPTS --timeout  ${{ inputs.test_default_timeout }} --mode ${{ inputs.test_log_mod }}
+        env:
+          OPTS: ${{ format('{0} {1} {2}', inputs.test_dir_paths != '' && format('-d {0}', inputs.test_dir_paths) || '', inputs.test_file_paths != '' && format('-f {0}', inputs.test_file_paths) || '', inputs.test_tags != '' && format('-t {0}', inputs.test_tags) || '') }}
+        run: ./oscript_modules/bin/oneunit e $OPTS --timeout  ${{ inputs.test_default_timeout }} --mode ${{ inputs.test_log_mod }}
