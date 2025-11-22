@@ -150,11 +150,6 @@ jobs:
         if: matrix.test_engine == '1testrunner'
         run: oscript ${{ inputs.test_script_path}}
 
-      # При запуске в WIN используется git bash для которого нужно sh скрипт сгенерить, чтобы вызывать по имени oneunit а не oneunit.bat
-      - name: Конфигурация OPM
-        if: runner.os == 'Windows' && matrix.test_engine == 'oneunit'
-        run: opm config --winCreateBashLauncher
-
       - name: Тестирование
         if: matrix.test_engine == 'oneunit'
         env:
