@@ -10,6 +10,11 @@ on:
         required: false
         default: 'default'
         type: string
+      opm_version:
+        description: Version of OPM to install (e.g., "1.1.0"). If empty, installs the latest version without version specification
+        required: false
+        default: ""
+        type: string
       sonar_host_url:
         required: false
         default: 'https://sonar.openbsl.ru'
@@ -77,11 +82,11 @@ jobs:
 
     steps:
       - name: Актуализация
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.1
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
 
@@ -100,14 +105,30 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Установка OneScript
-        uses: otymko/setup-onescript@v1.5
+        uses: otymko/setup-onescript@v1.5.1
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }} 
 
-      - name: Установка зависимостей пакета
+      - name: Установка зависимостей пакета (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          opm install opm
-          opm install oneunit
+          if ("${{ inputs.opm_version }}" -ne "") {
+            opm install opm@${{ inputs.opm_version }}
+          } else {
+            opm install opm
+          }
+          opm install -l --dev
+
+      - name: Установка зависимостей пакета (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.opm_version }}" ]; then
+            opm install opm@${{ inputs.opm_version }}
+          else
+            opm install opm
+          fi
           opm install -l --dev
 
       - name: Установка дополнительных пакетов
@@ -148,7 +169,7 @@ jobs:
             --cobertura out/coverage.xml
 
       - name: Сохранение артефактов покрытия
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: |
@@ -163,7 +184,7 @@ jobs:
     if: ${{ (inputs.sonarqube == true) && (github.repository == inputs.github_repository) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name) }} 
     steps:
       - name: Актуализация
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.1
         with:
           fetch-depth: 0
 
@@ -171,7 +192,7 @@ jobs:
         uses: nelonoel/branch-name@v1.0.1
 
       - name: Скачивание артефактов
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: coverage
           path: out
@@ -182,7 +203,7 @@ jobs:
         id: extract_version
 
       - name: Настройка sonar-scanner
-        uses: warchant/setup-sonar-scanner@v8
+        uses: warchant/setup-sonar-scanner@v9
 
       - name: Анализ в SonarQube (branch)
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' 
@@ -213,9 +234,9 @@ jobs:
     needs: [test]
     steps:
       - name: Актуализация
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.1
       - name: Скачивание артефактов
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: coverage
           path: out

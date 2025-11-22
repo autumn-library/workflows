@@ -9,6 +9,16 @@ on:
         required: false
         type: string
         default: "default"
+        type: string
+      opm_version:
+        description: Version of OPM to install (e.g., "1.1.0"). If empty, installs the latest version without version specification
+        required: false
+        default: ""
+        type: string
+      test_script_path:
+        required: false
+        type: string
+        default: ./tasks/test.os
       additional_oscript_packages:
         description: Package list to install, space separated.
         type: string
@@ -78,7 +88,7 @@ jobs:
 
     steps:
       - name: Актуализация
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.1
 
       - name: Установка свойств git
         shell: bash
@@ -88,7 +98,7 @@ jobs:
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
 
@@ -111,9 +121,26 @@ jobs:
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
-      - name: Установка зависимостей
+      - name: Установка зависимостей (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          opm install opm
+          if ("${{ inputs.opm_version }}" -ne "") {
+            opm install opm@${{ inputs.opm_version }}
+          } else {
+            opm install opm
+          }
+          opm install -l --dev
+
+      - name: Установка зависимостей (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.opm_version }}" ]; then
+            opm install opm@${{ inputs.opm_version }}
+          else
+            opm install opm
+          fi
           opm install -l --dev
 
       - name: Установка дополнительных пакетов

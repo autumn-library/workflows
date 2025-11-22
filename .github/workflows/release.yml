@@ -11,6 +11,11 @@ on:
         required: false
         type: string
         default: "default"
+      opm_version:
+        description: Version of OPM to install (e.g., "1.1.0"). If empty, installs the latest version without version specification
+        required: false
+        default: ""
+        type: string
       package_mask:
         required: false
         type: string
@@ -38,11 +43,11 @@ jobs:
     steps:
       # Загрузка проекта
       - name: Актуализация
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.1
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
 
@@ -59,22 +64,40 @@ jobs:
             version="${{ inputs.oscript_version }}"
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
+      
       - name: Установка OneScript
-        uses: otymko/setup-onescript@v1.5
+        uses: otymko/setup-onescript@v1.5.1
         with:
           version: ${{ steps.extract_oscript_version.outputs.version }}
 
       # Установка зависимостей пакета
-      - name: Установка зависимостей
+      - name: Установка зависимостей (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          opm install opm
+          if ("${{ inputs.opm_version }}" -ne "") {
+            opm install opm@${{ inputs.opm_version }}
+          } else {
+            opm install opm
+          }
+          opm install -l
+
+      - name: Установка зависимостей (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.opm_version }}" ]; then
+            opm install opm@${{ inputs.opm_version }}
+          else
+            opm install opm
+          fi
           opm install -l
 
       - name: Сборка пакета
         run: opm build .
 
       - name: Заливка артефактов
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: package.zip
           path: ./${{ env.PACKAGE_MASK }}
