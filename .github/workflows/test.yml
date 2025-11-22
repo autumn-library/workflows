@@ -60,9 +60,9 @@ on:
         required: false
         type: string
       test_tags:
-         description: Comma-separated list of tags to run.
-         required: false
-         type: string
+        description: Comma-separated list of tags to run.
+        required: false
+        type: string
       test_default_timeout:
         description: Timeout in seconds for each test.
         required: false

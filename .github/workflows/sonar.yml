@@ -19,35 +19,16 @@ on:
         required: false
         default: 'https://sonar.openbsl.ru'
         type: string
-
-      test_dir_paths:
-        description: Comma-separated list of paths to test directories.
-        required: false
-        type: string
-      test_file_paths:
-        description: Comma-separated list of paths to test files.
-        required: false
-        type: string
-      test_tags:
-        description: Comma-separated list of tags to run.
-        required: false
-        type: string
-      test_default_timeout:
-        description: Timeout in seconds for each test.
-        required: false
-        type: number
-        default: 0
-      test_log_mod:
-        description: Log mode for tests.
-        required: false
-        type: string
-        default: "tree"
-
       additional_oscript_packages:
         description: Package list to install, space separated.
         type: string
         required: false
         default: ""
+      test_engine:
+        description: Test engine to use. Can be one of 'oneunit', '1testrunner'.
+        type: string
+        required: false
+        default: "1testrunner"
       sonarqube:
         required: false
         type: boolean
@@ -71,6 +52,42 @@ on:
         type: string
         required: false
         default: "ubuntu-latest"
+
+      # 1testrunner inputs
+      test_script_path:
+        required: false
+        type: string
+        default: ./tasks/coverage.os
+
+      # OneUnit inputs
+      oneunit_version:
+        description: Version of OneUnit to install ("0.2.3", "0.3.0"). If empty, installs the latest version
+        required: false
+        type: string
+        default: ''
+      test_dir_paths:
+        description: Comma-separated list of paths to test directories.
+        required: false
+        type: string
+      test_file_paths:
+        description: Comma-separated list of paths to test files.
+        required: false
+        type: string
+      test_tags:
+        description: Comma-separated list of tags to run.
+        required: false
+        type: string
+      test_default_timeout:
+        description: Timeout in seconds for each test.
+        required: false
+        type: number
+        default: 0
+      test_log_mod:
+        description: Log mode for tests.
+        required: false
+        type: string
+        default: "tree"
+
     secrets:
       SONAR_TOKEN:
         required: false
@@ -120,6 +137,16 @@ jobs:
           }
           opm install -l --dev
 
+      - name: Установка OneUnit (Windows)
+        if: runner.os == 'Windows' && inputs.test_engine == 'oneunit'
+        shell: pwsh
+        run: |
+          if ("${{ inputs.oneunit_version }}" -ne "") {
+            opm install -l oneunit@${{ inputs.oneunit_version }}
+          } else {
+            opm install -l oneunit
+          }
+
       - name: Установка зависимостей пакета (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
@@ -131,6 +158,16 @@ jobs:
           fi
           opm install -l --dev
 
+      - name: Установка OneUnit (Linux/macOS)
+        if: runner.os != 'Windows' && inputs.test_engine == 'oneunit'
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.oneunit_version }}" ]; then
+            opm install -l oneunit@${{ inputs.oneunit_version }}
+          else
+            opm install -l oneunit
+          fi
+
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
         run: opm install -l ${{ inputs.additional_oscript_packages }}
@@ -140,28 +177,14 @@ jobs:
         run: opm build .
 
       - name: Запуск тестов
-        shell: bash
-        run: |
-          set -ex
+        if: inputs.test_engine == '1testrunner'
+        run: oscript ${{ inputs.test_script_path}}
 
-          OPTS=""
-
-          if [ "${{ inputs.test_dir_paths }}" != "" ]
-          then
-            OPTS="$OPTS -d ${{ inputs.test_dir_paths }}"
-          fi
-
-          if [ "${{ inputs.test_file_paths }}" != "" ]
-          then
-            OPTS="$OPTS -f ${{ inputs.test_file_paths }}"
-          fi
-
-          if [ "${{ inputs.test_tags }}" != "" ]
-          then
-            OPTS="$OPTS -t ${{ inputs.test_tags }}"
-          fi
-
-          oneunit e $OPTS \
+      - name: Запуск тестов
+        if: inputs.test_engine == 'oneunit'
+        env:
+          OPTS: ${{ format('{0} {1} {2}', inputs.test_dir_paths != '' && format('-d {0}', inputs.test_dir_paths) || '', inputs.test_file_paths != '' && format('-f {0}', inputs.test_file_paths) || '', inputs.test_tags != '' && format('-t {0}', inputs.test_tags) || '') }}
+        run: ./oscript_modules/bin/oneunit e $OPTS \
             --timeout  ${{ inputs.test_default_timeout }} \
             --mode ${{ inputs.test_log_mod }} \
             --genericExecution out/genericExecution.xml \
@@ -172,10 +195,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: coverage
-          path: |
-            out/coverage.xml
-            out/genericCoverage.xml
-            out/genericExecution.xml
+          path: out/*overage*.xml
           if-no-files-found: ignore
 
   sonar:
