@@ -3,24 +3,26 @@ name: Тестирование
 on: 
   workflow_call:
     inputs:
+
+      # General inputs
       oscript_version:
         required: false
-        default: "default"
         type: string
+        default: "default"
       opm_version:
         description: Version of OPM to install (e.g., "1.1.0"). If empty, installs the latest version without version specification
         required: false
         default: ""
         type: string
-      test_script_path:
-        required: false
-        type: string
-        default: ./tasks/test.os
       additional_oscript_packages:
         description: Package list to install, space separated.
         type: string
         required: false
-        default: ""
+      test_engine:
+        description: Test engine to use. Can be one of 'oneunit', '1testrunner'.
+        type: string
+        required: false
+        default: "1testrunner"
       dotnet_version:
         description: Version of .NET to install
         type: string
@@ -37,6 +39,41 @@ on:
         required: false
         default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
 
+      # 1testrunner inputs
+      test_script_path:
+        required: false
+        type: string
+        default: ./tasks/test.os
+
+      # OneUnit inputs
+      oneunit_version:
+        description: Version of OneUnit to install ("0.2.3", "0.3.0"). If empty, installs the latest version
+        required: false
+        type: string
+        default: ''
+      test_dir_paths:
+        description: Comma-separated list of paths to test directories.
+        required: false
+        type: string
+      test_file_paths:
+        description: Comma-separated list of paths to test files.
+        required: false
+        type: string
+      test_tags:
+        description: Comma-separated list of tags to run.
+        required: false
+        type: string
+      test_default_timeout:
+        description: Timeout in seconds for each test.
+        required: false
+        type: number
+        default: 0
+      test_log_mod:
+        description: Log mode for tests.
+        required: false
+        type: string
+        default: "tree"
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -44,9 +81,11 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJSON(inputs.os_versions) }}
-        oscript_version: 
+        oscript_version:
           - ${{ inputs.oscript_version }}
-        
+        test_engine:
+          - ${{ inputs.test_engine }}
+
     steps:
       - name: Актуализация
         uses: actions/checkout@v6.0.0
@@ -62,7 +101,7 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
-      
+
       - name: Вычисление версии OneScript
         shell: bash
         id: extract_oscript_version
@@ -93,6 +132,16 @@ jobs:
           }
           opm install -l --dev
 
+      - name: Установка OneUnit (Windows)
+        if: runner.os == 'Windows' && matrix.test_engine == 'oneunit'
+        shell: pwsh
+        run: |
+          if ("${{ inputs.oneunit_version }}" -ne "") {
+            opm install -l oneunit@${{ inputs.oneunit_version }}
+          } else {
+            opm install -l oneunit
+          }
+
       - name: Установка зависимостей (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
@@ -103,7 +152,17 @@ jobs:
             opm install opm
           fi
           opm install -l --dev
-      
+
+      - name: Установка OneUnit (Linux/macOS)
+        if: runner.os != 'Windows' && matrix.test_engine == 'oneunit'
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.oneunit_version }}" ]; then
+            opm install -l oneunit@${{ inputs.oneunit_version }}
+          else
+            opm install -l oneunit
+          fi
+
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
         run: opm install -l ${{ inputs.additional_oscript_packages }}
@@ -113,4 +172,11 @@ jobs:
         run: opm build .
 
       - name: Тестирование
+        if: matrix.test_engine == '1testrunner'
         run: oscript ${{ inputs.test_script_path}}
+
+      - name: Тестирование
+        if: matrix.test_engine == 'oneunit'
+        env:
+          OPTS: ${{ format('{0} {1} {2}', inputs.test_dir_paths != '' && format('-d {0}', inputs.test_dir_paths) || '', inputs.test_file_paths != '' && format('-f {0}', inputs.test_file_paths) || '', inputs.test_tags != '' && format('-t {0}', inputs.test_tags) || '') }}
+        run: ./oscript_modules/bin/oneunit e $OPTS --timeout  ${{ inputs.test_default_timeout }} --mode ${{ inputs.test_log_mod }}
