@@ -43,7 +43,7 @@ jobs:
     steps:
       # Загрузка проекта
       - name: Актуализация
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
