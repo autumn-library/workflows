@@ -187,7 +187,7 @@ jobs:
         run: ./oscript_modules/bin/oneunit e $OPTS --timeout  ${{ inputs.test_default_timeout }} --mode ${{ inputs.test_log_mod }} --genericExecution out/genericExecution.xml --genericCoverage out/genericCoverage.xml --cobertura out/coverage.xml
 
       - name: Сохранение артефактов покрытия
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage
           path: |
