@@ -6,6 +6,10 @@ on:
       github_repository:
         required: true
         type: string
+      locale:
+        required: false
+        type: string
+        default: "ru_RU"
       oscript_version:
         required: false
         default: 'default'
@@ -96,7 +100,9 @@ jobs:
 
   test:
     runs-on: ${{ inputs.os_version }}
-
+    env:
+      LANG: ${{ inputs.locale }}.UTF-8
+      LC_ALL: ${{ inputs.locale }}.UTF-8
     steps:
       - name: Актуализация
         uses: actions/checkout@v6.0.1

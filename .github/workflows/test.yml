@@ -5,6 +5,10 @@ on:
     inputs:
 
       # General inputs
+      locale:
+        required: false
+        type: string
+        default: "ru_RU"
       oscript_version:
         required: false
         type: string
@@ -77,6 +81,9 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    env:
+      LANG: ${{ inputs.locale }}.UTF-8
+      LC_ALL: ${{ inputs.locale }}.UTF-8
     strategy:
       fail-fast: false
       matrix:
@@ -89,6 +96,12 @@ jobs:
     steps:
       - name: Актуализация
         uses: actions/checkout@v6.0.1
+        
+      - name: Установка локали (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          powershell -Command "Set-WinSystemLocale -SystemLocale '${{ inputs.locale }}'"
+          powershell -Command "Set-Culture '${{ inputs.locale }}'"
 
       - name: Установка свойств git
         shell: bash
