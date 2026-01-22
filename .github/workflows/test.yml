@@ -95,7 +95,7 @@ jobs:
 
     steps:
       - name: Актуализация
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         
       - name: Установка локали (Windows)
         if: startsWith(matrix.os, 'windows')

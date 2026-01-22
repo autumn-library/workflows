@@ -105,7 +105,7 @@ jobs:
       LC_ALL: ${{ inputs.locale }}.UTF-8
     steps:
       - name: Актуализация
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
@@ -207,7 +207,7 @@ jobs:
     if: ${{ (inputs.sonarqube == true) && (github.repository == inputs.github_repository) && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name) }} 
     steps:
       - name: Актуализация
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
@@ -257,7 +257,7 @@ jobs:
     needs: [test]
     steps:
       - name: Актуализация
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
       - name: Скачивание артефактов
         uses: actions/download-artifact@v7
         with:
