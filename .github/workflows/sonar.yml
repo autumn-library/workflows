@@ -215,7 +215,7 @@ jobs:
         uses: nelonoel/branch-name@v1.0.1
 
       - name: Скачивание артефактов
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: coverage
           path: out
@@ -259,7 +259,7 @@ jobs:
       - name: Актуализация
         uses: actions/checkout@v6.0.2
       - name: Скачивание артефактов
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: coverage
           path: out
