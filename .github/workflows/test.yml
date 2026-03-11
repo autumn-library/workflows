@@ -77,6 +77,11 @@ on:
         required: false
         type: string
         default: "tree"
+      test_recursive:
+        description: Search for tests recursively in subdirectories.
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -191,5 +196,5 @@ jobs:
       - name: Тестирование
         if: matrix.test_engine == 'oneunit'
         env:
-          OPTS: ${{ format('{0} {1} {2}', inputs.test_dir_paths != '' && format('-d {0}', inputs.test_dir_paths) || '', inputs.test_file_paths != '' && format('-f {0}', inputs.test_file_paths) || '', inputs.test_tags != '' && format('-t {0}', inputs.test_tags) || '') }}
+          OPTS: ${{ format('{0} {1} {2} {3}', inputs.test_dir_paths != '' && format('-d {0}', inputs.test_dir_paths) || '', inputs.test_file_paths != '' && format('-f {0}', inputs.test_file_paths) || '', inputs.test_tags != '' && format('-t {0}', inputs.test_tags) || '', inputs.test_recursive == true && '--recursive' || '') }}
         run: ./oscript_modules/bin/oneunit e $OPTS --timeout  ${{ inputs.test_default_timeout }} --mode ${{ inputs.test_log_mod }}
