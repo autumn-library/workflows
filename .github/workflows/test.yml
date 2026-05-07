@@ -22,6 +22,11 @@ on:
         description: Package list to install, space separated.
         type: string
         required: false
+      additional_pip_packages:
+        description: Python package list to install via pip, space separated (e.g. "protobuf grpcio").
+        type: string
+        required: false
+        default: ""
       test_engine:
         description: Test engine to use. Can be one of 'oneunit', '1testrunner'.
         type: string
@@ -184,6 +189,10 @@ jobs:
       - name: Установка дополнительных пакетов
         if: inputs.additional_oscript_packages != ''
         run: opm install -l ${{ inputs.additional_oscript_packages }}
+
+      - name: Установка Python-пакетов
+        if: inputs.additional_pip_packages != ''
+        run: pip install ${{ inputs.additional_pip_packages }}
 
       - name: Сборка пакета
         if: inputs.build_package == true
