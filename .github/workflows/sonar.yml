@@ -131,6 +131,7 @@ jobs:
           # дублирования прогонов.
           if [ "$EVENT_NAME" == "push" ] \
             && [ "$REF_NAME" != "$DEFAULT_BRANCH" ] \
+            && [ "$REF_NAME" != "main" ] \
             && [ "$REF_NAME" != "master" ] \
             && [ "$REF_NAME" != "develop" ]; then
             prs=$(gh pr list --repo "$REPOSITORY" --head "$REF_NAME" --state open --json number --jq 'length')

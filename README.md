@@ -29,7 +29,7 @@ lib.system=../oscript_modules
 Сборочная линия для выполнения тестирования библиотеки. Позволяет запустить матричную сборку на настраиваемом списке операционных систем (по умолчанию Windows, Ubuntu и macOS) на нескольких версиях движка OneScript. Поддерживается запуск из ветки, из pull request и ручной запуск из информации о конкретном workflow.
 
 > [!NOTE]
-> Чтобы избежать двойного прогона, при событии `push` в ветку, для которой уже открыт pull request, тестирование пропускается — оно будет выполнено в рамках события `pull_request`. Для ветки по умолчанию (а также `master` и `develop`) тестирование выполняется всегда.
+> Чтобы избежать двойного прогона, при событии `push` в ветку, для которой уже открыт pull request, тестирование пропускается — оно будет выполнено в рамках события `pull_request`. Для ветки по умолчанию (а также `main`, `master` и `develop`) тестирование выполняется всегда.
 
 Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/test.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/test.yml)
 
@@ -212,7 +212,7 @@ jobs:
 > Анализ pull request из форков для задачи SonarQube пока не поддерживается.
 
 > [!NOTE]
-> Чтобы избежать двойного прогона, при событии `push` в ветку, для которой уже открыт pull request, контроль качества пропускается — он будет выполнен в рамках события `pull_request`. Для ветки по умолчанию (а также `master` и `develop`) контроль качества выполняется всегда.
+> Чтобы избежать двойного прогона, при событии `push` в ветку, для которой уже открыт pull request, контроль качества пропускается — он будет выполнен в рамках события `pull_request`. Для ветки по умолчанию (а также `main`, `master` и `develop`) контроль качества выполняется всегда.
 
 Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml)
 
