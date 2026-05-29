@@ -30,6 +30,7 @@ lib.system=../oscript_modules
 
 > [!NOTE]
 > Чтобы избежать двойного прогона, при событии `push` в ветку, для которой уже открыт pull request, тестирование пропускается — оно будет выполнено в рамках события `pull_request`. Для ветки по умолчанию (а также `main`, `master` и `develop`) тестирование выполняется всегда.
+> Для работы этой проверки вызывающему workflow необходимо выдать токену право `pull-requests: read` (см. блок `permissions` в примерах ниже). Если право не выдано, тестирование запускается как обычно — и на `push`, и на `pull_request`.
 
 Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/test.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/test.yml)
 
@@ -76,6 +77,10 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read # для пропуска повторного прогона на push при открытом PR
 
 jobs:
   test:
@@ -213,6 +218,7 @@ jobs:
 
 > [!NOTE]
 > Чтобы избежать двойного прогона, при событии `push` в ветку, для которой уже открыт pull request, контроль качества пропускается — он будет выполнен в рамках события `pull_request`. Для ветки по умолчанию (а также `main`, `master` и `develop`) контроль качества выполняется всегда.
+> Для работы этой проверки вызывающему workflow необходимо выдать токену право `pull-requests: read` (см. блок `permissions` в примерах ниже). Если право не выдано, контроль качества запускается как обычно — и на `push`, и на `pull_request`.
 
 Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml)
 
@@ -272,6 +278,10 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read # для пропуска повторного прогона на push при открытом PR
 
 jobs:
   sonar:
