@@ -119,7 +119,7 @@ jobs:
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
 
