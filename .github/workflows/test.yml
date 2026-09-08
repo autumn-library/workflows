@@ -89,7 +89,45 @@ on:
         default: false
 
 jobs:
+  check-pr-exists:
+    runs-on: ubuntu-latest
+    outputs:
+      has_pr: ${{ steps.check.outputs.has_pr }}
+    steps:
+      - name: Проверка наличия pull request для ветки
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -e
+          # При push в ветку, для которой уже открыт pull request, тесты будут
+          # запущены в рамках события pull_request, поэтому повторный запуск
+          # для события push пропускается во избежание дублирования прогонов.
+          # Проверка работает только если вызывающий workflow выдал токену
+          # право pull-requests: read; иначе gh завершится с ошибкой и тесты
+          # будут запущены (безопасное поведение по умолчанию).
+          if [ "$EVENT_NAME" == "push" ] \
+            && [ "$REF_NAME" != "$DEFAULT_BRANCH" ] \
+            && [ "$REF_NAME" != "main" ] \
+            && [ "$REF_NAME" != "master" ] \
+            && [ "$REF_NAME" != "develop" ]; then
+            prs=$(gh pr list --repo "$REPOSITORY" --head "$REF_NAME" --state open --json number --jq 'length' 2>/dev/null || echo "0")
+            if [ "$prs" -gt 0 ]; then
+              echo "has_pr=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "has_pr=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "has_pr=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    needs: [check-pr-exists]
+    if: needs.check-pr-exists.outputs.has_pr != 'true'
     runs-on: ${{ matrix.os }}
     env:
       LANG: ${{ inputs.locale }}.UTF-8
