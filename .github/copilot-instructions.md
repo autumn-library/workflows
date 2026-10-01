@@ -23,6 +23,7 @@ This repository contains a collection of reusable GitHub Actions workflows desig
 ### Workflow Types Available
 1. **Testing** (`.github/workflows/test.yml`): Matrix testing on Windows, Ubuntu, macOS with multiple OneScript versions
 2. **Quality Control** (`.github/workflows/sonar.yml`): SonarQube analysis and Coveralls coverage reporting  
+   - **Fork PR analysis** (`.github/workflows/sonar-fork.yml`): SonarQube analysis of fork pull requests, called from a `workflow_run` workflow after quality control
 3. **Release** (`.github/workflows/release.yml`): Package building and publishing to oscript hub
 4. **Documentation** (`.github/workflows/deploy-docs.yml`): Documentation deployment trigger
 

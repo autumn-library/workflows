@@ -206,7 +206,7 @@ jobs:
 
 Сборочная линия для выполнения анализа качества кода с помощью SonarQube и отправки данных о покрытии в [coveralls](https://coveralls.io).  
 Поддерживается запуск из ветки, из pull request и ручной запуск из информации о конкретном workflow.  
-> Анализ pull request из форков для задачи SonarQube пока не поддерживается.
+> Для анализа pull request из форков нужен дополнительный workflow, см. [Анализ pull request из форков](#анализ-pull-request-из-форков).
 
 Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar.yml)
 
@@ -296,6 +296,53 @@ jobs:
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 ```
+
+### Анализ pull request из форков
+
+У pull request из форков нет доступа к секретам, поэтому `sonar.yml` для них только запускает тесты и сохраняет покрытие в артефакт, а задача SonarQube пропускается. Отправить анализ на сервер можно отдельным workflow, который запускается по событию `workflow_run` после завершения контроля качества и вызывает `sonar-fork.yml`. Схема описана в [документации SonarQube](https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/ci-based-analysis/github-actions-for-sonarcloud#analyzing-fork-pull-requests).
+
+Файл workflow: [https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar-fork.yml](https://github.com/autumn-library/workflows/blob/main/.github/workflows/sonar-fork.yml)
+
+Параметры:
+
+| Имя параметра         | Описание                                                                                                 | Значение по умолчанию      |
+| --------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------- |
+| **github_repository** | Репозиторий проекта в GitHub, для которого будет выполняться анализ, в формате `имя_владельца/название` |                            |
+| sonar_host_url        | URL сервера SonarQube                                                                                    | `https://sonar.openbsl.ru` |
+| os_version            | Операционная система для запуска анализа. Должна совпадать с `os_version`, переданной в `sonar.yml`      | `ubuntu-latest`            |
+
+Секреты:
+
+| Имя секрета | Описание                                   | Обязательный |
+| ----------- | ------------------------------------------ | ------------ |
+| SONAR_TOKEN | Токен для авторизации на сервере SonarQube | Нет          |
+
+В `workflows` укажите имя workflow контроля качества (значение `name` из файла, который вызывает `sonar.yml`). Workflow с `workflow_run` берется из ветки по умолчанию, поэтому заработает только после вливания в нее.
+
+```yaml
+name: Контроль качества (форк)
+
+on:
+  workflow_run:
+    workflows: [Контроль качества]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  sonar:
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    uses: autumn-library/workflows/.github/workflows/sonar-fork.yml@main
+    with:
+      github_repository: autumn-library/annotations # change me!
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+```
+
+Код форка в этом workflow не запускается: исходники нужны только сканеру, настройки анализа берутся из `sonar-project.properties` базовой ветки pull request, а pull request с символическими ссылками отклоняется. Поэтому изменения `sonar-project.properties` в самом pull request из форка при его анализе не учитываются. Артефакт с покрытием собирается кодом форка, так что в `SONAR_TOKEN` лучше передавать токен анализа только этого проекта (Project Analysis Token).
 
 ### Отключение анализа SonarQube
 
