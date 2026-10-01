@@ -1,0 +1,105 @@
+name: Контроль качества (форк)
+
+# Анализ SonarQube для pull request из форков. У таких PR в sonar.yml нет секретов, поэтому там
+# выполняются только тесты с покрытием, а здесь результаты отправляются на сервер.
+# Вызывается из workflow, который запускается по workflow_run после завершения sonar.yml.
+# Код форка здесь не запускается, а исходники и артефакт считаются недоверенными.
+
+on:
+  workflow_call:
+    inputs:
+      github_repository:
+        required: true
+        type: string
+      sonar_host_url:
+        required: false
+        default: 'https://sonar.openbsl.ru'
+        type: string
+      os_version:
+        description: Operating system to run analysis on. Must match os_version passed to sonar.yml
+        type: string
+        required: false
+        default: "ubuntu-latest"
+    secrets:
+      SONAR_TOKEN:
+        required: false
+
+jobs:
+  sonar:
+    runs-on: ${{ inputs.os_version }}
+    if: >
+      github.repository == inputs.github_repository &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name != github.repository
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    env:
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+    steps:
+      # Номер PR и базовую ветку берем у GitHub, а не из артефакта: артефакт собран кодом форка.
+      # Имя ветки уходит в аргументы sonar-scanner, на Windows это bat-файл, поэтому допускаем только безопасные символы
+      - name: Поиск pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          if ($env:HEAD_BRANCH -notmatch '^[\w./+-]+$') { throw "Неподдерживаемое имя ветки: $env:HEAD_BRANCH" }
+          $pr = gh api -X GET "repos/$env:GITHUB_REPOSITORY/pulls" -f state=open -f "head=$($env:HEAD_OWNER):$($env:HEAD_BRANCH)" |
+              ConvertFrom-Json | Where-Object { $_.head.sha -eq $env:HEAD_SHA } | Select-Object -First 1
+          if (-not $pr) { throw "Не найден открытый pull request из $($env:HEAD_OWNER):$($env:HEAD_BRANCH) на $env:HEAD_SHA" }
+          "number=$($pr.number)" >> $env:GITHUB_OUTPUT
+          "base=$($pr.base.ref)" >> $env:GITHUB_OUTPUT
+
+      # Исходники нужны сканеру для отчета, ничего из них не запускается
+      - name: Актуализация
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ env.HEAD_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # sonar-project.properties из форка мог бы подменить проект или запустить свой код через настройки
+      # сканера, поэтому настройки берем из базовой ветки. Через символические ссылки сканер отправил бы
+      # на сервер файлы вне репозитория, а артефакт записал бы файлы за пределы каталога out
+      - name: Подготовка анализа
+        env:
+          PR_BASE: ${{ steps.pr.outputs.base }}
+        shell: pwsh
+        run: |
+          if (git ls-files -s | Select-String '^120000') { throw 'В pull request есть символические ссылки' }
+          git show "origin/$($env:PR_BASE):sonar-project.properties" > "$env:RUNNER_TEMP/sonar-project.properties"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Скачивание артефактов
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage
+          path: out
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Настройка sonar-scanner
+        uses: warchant/setup-sonar-scanner@v10
+
+      # https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/ci-based-analysis/github-actions-for-sonarcloud#analyzing-fork-pull-requests
+      - name: Анализ в SonarQube (pull-request)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST: ${{ inputs.sonar_host_url }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_BASE: ${{ steps.pr.outputs.base }}
+        shell: pwsh
+        run: |
+          sonar-scanner "-Dproject.settings=$env:RUNNER_TEMP/sonar-project.properties" `
+              "-Dsonar.host.url=$env:SONAR_HOST" `
+              "-Dsonar.pullrequest.key=$env:PR_NUMBER" `
+              "-Dsonar.pullrequest.branch=$env:HEAD_BRANCH" `
+              "-Dsonar.pullrequest.base=$env:PR_BASE" `
+              "-Dsonar.scm.revision=$env:HEAD_SHA"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }

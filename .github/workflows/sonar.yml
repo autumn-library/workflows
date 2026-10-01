@@ -215,6 +215,7 @@ jobs:
             out/genericExecution.xml
           if-no-files-found: ignore
 
+  # У PR из форка нет секретов: здесь только тесты с покрытием, а анализ на сервер отправляет sonar-fork.yml
   sonar:
     runs-on: ${{ inputs.os_version }}
     needs: [test]
