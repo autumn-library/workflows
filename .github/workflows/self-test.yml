@@ -1,0 +1,44 @@
+# Проверка самих workflow репозитория: этот файл не переиспользуемый, его не вызывают извне.
+
+name: Проверка workflow
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Актуализация
+        uses: actions/checkout@v7.0.1
+
+      # shellcheck на раннере уже есть: actionlint прогоняет им run-скрипты шагов
+      - name: actionlint
+        shell: bash
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -color
+
+  bats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Актуализация
+        uses: actions/checkout@v7.0.1
+
+      - name: Установка bats
+        uses: bats-core/bats-action@4.0.0
+        with:
+          bats-version: 1.14.0
+          support-install: false
+          assert-install: false
+          detik-install: false
+          file-install: false
+
+      # yq (mikefarah) и jq на раннере уже есть
+      - name: Тесты run-скриптов
+        run: bats tests/

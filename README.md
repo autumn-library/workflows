@@ -413,3 +413,17 @@ jobs:
     secrets:
       PUSH_TOKEN: ${{ secrets.PUSH_TOKEN }}
 ```
+
+## Разработка
+
+Workflow репозитория проверяются его собственным CI — [self-test.yml](.github/workflows/self-test.yml):
+
+- [actionlint](https://github.com/rhysd/actionlint) проверяет синтаксис, выражения `${{ }}`, входы переиспользуемых workflow и, через shellcheck, `run:`-скрипты шагов;
+- [bats](https://github.com/bats-core/bats-core) исполняет `run:`-скрипты шагов с подставленными входами и сверяет их выходы — тесты лежат в [tests/](tests/).
+
+Локально нужны `actionlint`, `shellcheck`, `bats`, `yq` ([mikefarah](https://github.com/mikefarah/yq), v4) и `jq`:
+
+```bash
+actionlint
+bats tests/
+```
