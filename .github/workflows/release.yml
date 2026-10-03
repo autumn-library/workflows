@@ -41,10 +41,10 @@ on:
         required: false
         default: "https://hub.oscript.io"
       pool:
-        description: Hub pool for trusted publishing. Empty means the hub's default pool
+        description: Hub pool for trusted publishing. Empty means "default"
         type: string
         required: false
-        default: ""
+        default: "default"
       audience:
         description: Audience of the id-token for trusted publishing. Empty means hub_url
         type: string
@@ -151,16 +151,15 @@ jobs:
         run: |
           hub="${HUB_URL%/}"
           audience="${HUB_AUDIENCE:-$hub}"
+          # пустой пул приходит при запуске по релизу, когда вызывающий пробрасывает вход workflow_dispatch
           pool=$(printf '%s' "$HUB_POOL" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+          pool="${pool:-default}"
 
-          if [ -z "$pool" ]; then
-            push_url="$hub/push"
-          elif [[ "$pool" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]]; then
-            push_url="$hub/api/v1/pools/$pool/push"
-          else
+          if ! [[ "$pool" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]]; then
             echo "::error::Недопустимое имя пула '$pool': латинские буквы, цифры, '-', '_', '.', первый символ — буква или цифра"
             exit 1
           fi
+          push_url="$hub/api/v1/pools/$pool/push"
 
           if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
             echo "::error::GitHub не выдал id-token: добавьте в вызывающий workflow 'permissions: id-token: write'"
