@@ -7,18 +7,22 @@ This repository contains a collection of reusable GitHub Actions workflows desig
 ## Working Effectively
 
 ### Repository Structure and Purpose
-- This repository contains ONLY reusable GitHub Actions workflows (`.github/workflows/*.yml`)
-- All workflows use `workflow_call` trigger - they are designed to be called by other repositories
-- NO builds, tests, or application code exist in this repository itself
+- This repository contains reusable GitHub Actions workflows (`.github/workflows/*.yml`) and tests for them (`tests/`)
+- All workflows except `self-test.yml` use `workflow_call` trigger - they are designed to be called by other repositories
+- `self-test.yml` is this repository's own CI: it runs actionlint and the bats tests on every push and pull request
+- NO builds or application code exist in this repository itself
 - The workflows are used by OneScript libraries like `autumn-library/annotations`
 
 ### Validation Commands
-- **YAML Linting**: `yamllint .github/workflows/*.yml` - validates workflow syntax (expect style warnings about line length and whitespace, but no syntax errors)
-- **Workflow Structure Check**: `grep -n "workflow_call" .github/workflows/*.yml` - confirms all workflows are reusable
-- **No Build Required**: This repository does not require building, testing, or running any application code
-- **No Tests to Run**: There are no unit tests or integration tests in this repository  
+- **Workflow Linting**: `actionlint` - validates workflow syntax, `${{ }}` expressions, reusable workflow inputs and, with `shellcheck` installed, the `run:` scripts. Must report no issues
+- **Step Script Tests**: `bats tests/` - executes `run:` scripts of workflow steps with stubbed inputs and checks their outputs. Requires `bats`, `yq` (mikefarah, v4) and `jq`
+- **No Build Required**: This repository does not require building or running any application code
 - **NEVER try to run**: `opm install`, `oscript`, `npm install`, `dotnet build`, or similar build commands - they are not applicable
-- **Expected yamllint output**: Warnings about document-start, line-length, trailing-spaces are normal and acceptable
+
+### Writing Tests for Step Scripts
+- Give the step an `id` and test it through `tests/helpers/workflow.bash`: `run_step <file> <job> <step id> name=value...` substitutes `${{ inputs.name }}`, runs the script with `bash -eo pipefail` in the current directory, and `step_output <name>` reads the step's `$GITHUB_OUTPUT`
+- An unsubstituted `${{ }}` left in the script fails the test: pass every input the script uses
+- A step duplicated across workflows is tested in every copy
 
 ### Workflow Types Available
 1. **Testing** (`.github/workflows/test.yml`): Matrix testing on Windows, Ubuntu, macOS with multiple OneScript versions
@@ -69,7 +73,7 @@ jobs:
 ## Validation Scenarios
 
 ### When Making Changes to Workflows
-1. **YAML Syntax**: Always run `yamllint .github/workflows/*.yml` and fix any syntax errors (style warnings are acceptable)
+1. **Lint and Tests**: Always run `actionlint` and `bats tests/`; both must pass
 2. **Test in Real Repository**: Create a test branch in `autumn-library/annotations` and update workflow reference to test changes
 3. **Verify Matrix Builds**: Ensure workflows run successfully on all target OS platforms (Windows, Ubuntu, macOS)
 4. **Check OneScript Versions**: Test with `default`, `stable`, and `dev` OneScript versions
@@ -93,7 +97,7 @@ jobs:
 5. **Matrix build failures**: Check OS-specific paths and line endings, verify OneScript version compatibility
 
 ### Testing Workflow Changes
-1. **Local YAML validation**: `yamllint .github/workflows/test.yml` (fix syntax errors, ignore style warnings)
+1. **Local validation**: `actionlint` and `bats tests/`
 2. **Reference test repository**: Use `autumn-library/annotations` or similar for end-to-end testing
 3. **Version testing strategy**:
    ```yaml
