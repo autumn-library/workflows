@@ -132,12 +132,12 @@ jobs:
           set -ex
           if [ "${{ inputs.oscript_version }}" = "default" ]
           then
-            extracted_version=$(cat packagedef | grep ".ВерсияСреды(" | sed 's|[^"]*"||' | sed -r 's/".+//' || true)
+            extracted_version=$(grep ".ВерсияСреды(" packagedef | sed 's|[^"]*"||' | sed -r 's/".+//' || true)
             version="${extracted_version:-stable}"
           else
             version="${{ inputs.oscript_version }}"
           fi
-          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Установка OneScript
         uses: otymko/setup-onescript@v1.5.1

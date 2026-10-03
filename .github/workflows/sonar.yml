@@ -130,12 +130,12 @@ jobs:
           set -ex
           if [ "${{ inputs.oscript_version }}" = "default" ]
           then
-            extracted_version=$(cat packagedef | grep ".ВерсияСреды(" | sed 's|[^"]*"||' | sed -r 's/".+//' || true)
+            extracted_version=$(grep ".ВерсияСреды(" packagedef | sed 's|[^"]*"||' | sed -r 's/".+//' || true)
             version="${extracted_version:-stable}"
           else
             version="${{ inputs.oscript_version }}"
           fi
-          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Установка OneScript
         uses: otymko/setup-onescript@v1.5.1
@@ -237,7 +237,7 @@ jobs:
 
       - name: Извлечение версии пакета
         shell: bash
-        run: echo "version=`cat packagedef | grep ".Версия(" | sed 's|[^"]*"||' | sed -r 's/".+//'`" >> $GITHUB_OUTPUT
+        run: echo "version=$(grep ".Версия(" packagedef | sed 's|[^"]*"||' | sed -r 's/".+//')" >> "$GITHUB_OUTPUT"
         id: extract_version
 
       - name: Настройка sonar-scanner
@@ -254,17 +254,27 @@ jobs:
           -Dsonar.projectVersion=${{ steps.extract_version.outputs.version }}
 
       # https://docs.sonarqube.org/latest/analysis/pull-request/
+      # Имя ветки PR задаёт его автор: в скрипт оно идёт через env, а не подстановкой. На Windows
+      # sonar-scanner — bat-файл, поэтому, как в sonar-fork.yml, допускаем только безопасные символы
       - name: Анализ в SonarQube (pull-request)
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: sonar-scanner
-          -Dsonar.host.url=${{ inputs.sonar_host_url }}
-          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-          -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
-          -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
-          -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
+          SONAR_HOST: ${{ inputs.sonar_host_url }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: pwsh
+        run: |
+          if ($env:PR_BRANCH -notmatch '^[\w./+-]+$') { throw "Неподдерживаемое имя ветки: $env:PR_BRANCH" }
+          sonar-scanner "-Dsonar.host.url=$env:SONAR_HOST" `
+              "-Dsonar.pullrequest.key=$env:PR_NUMBER" `
+              "-Dsonar.pullrequest.branch=$env:PR_BRANCH" `
+              "-Dsonar.pullrequest.base=$env:PR_BASE" `
+              "-Dsonar.scm.revision=$env:HEAD_SHA"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
   coveralls:
     runs-on: ${{ inputs.os_version }}
