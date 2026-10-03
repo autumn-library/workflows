@@ -36,10 +36,12 @@ call_has() {
     || { echo "вызов $1 без аргумента '$2':"; cat "$BATS_TEST_TMPDIR/call.$1" 2>/dev/null; return 1; }
 }
 
+# Проверяет, что шаг не вызвал curl ни разу.
 no_calls() {
   ! ls "$BATS_TEST_TMPDIR"/call.* >/dev/null 2>&1
 }
 
+# Печатает значение по умолчанию входа $1 workflow release.yml.
 input_default() {
   workflow_json release.yml | jq -r ".on.workflow_call.inputs.$1.default"
 }
