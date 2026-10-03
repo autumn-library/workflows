@@ -30,6 +30,26 @@ on:
         type: string
         required: false
         default: "ubuntu-latest"
+      trusted_publishing:
+        description: "Publish with the workflow's OIDC id-token instead of PUSH_TOKEN. The caller must grant 'id-token: write'"
+        type: boolean
+        required: false
+        default: false
+      hub_url:
+        description: Hub address for trusted publishing
+        type: string
+        required: false
+        default: "https://hub.oscript.io"
+      pool:
+        description: Hub pool for trusted publishing. Empty means the hub's default pool
+        type: string
+        required: false
+        default: ""
+      audience:
+        description: Audience of the id-token for trusted publishing. Empty means hub_url
+        type: string
+        required: false
+        default: ""
     secrets:
       PUSH_TOKEN:
         required: false
@@ -109,9 +129,65 @@ jobs:
       #    repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Публикация в hub.oscript.io
+        if: ${{ !inputs.trusted_publishing }}
         shell: bash
         env:
           GITHUB_OAUTH_TOKEN: ${{ secrets.PUSH_TOKEN }}
           OPM_HUB_CHANNEL: stable
         run: opm push ${{ env.PACKAGE_MASK }}
+
+      # Токена хаба нет: хаб проверяет подпись id-token и сверяет репозиторий, конвейер
+      # и реф с доверием, заведённым на пакет. Входы идут через env — пул приходит
+      # из workflow_dispatch, и подстановка в текст скрипта была бы инъекцией.
+      - name: Доверенная публикация в хаб
+        id: trusted_push
+        if: ${{ inputs.trusted_publishing }}
+        shell: bash
+        env:
+          HUB_URL: ${{ inputs.hub_url }}
+          HUB_POOL: ${{ inputs.pool }}
+          HUB_AUDIENCE: ${{ inputs.audience }}
+          OPM_HUB_CHANNEL: stable
+        run: |
+          hub="${HUB_URL%/}"
+          audience="${HUB_AUDIENCE:-$hub}"
+          pool=$(printf '%s' "$HUB_POOL" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+          if [ -z "$pool" ]; then
+            push_url="$hub/push"
+          elif [[ "$pool" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]]; then
+            push_url="$hub/api/v1/pools/$pool/push"
+          else
+            echo "::error::Недопустимое имя пула '$pool': латинские буквы, цифры, '-', '_', '.', первый символ — буква или цифра"
+            exit 1
+          fi
+
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+            echo "::error::GitHub не выдал id-token: добавьте в вызывающий workflow 'permissions: id-token: write'"
+            exit 1
+          fi
+
+          files=()
+          while IFS= read -r found; do files+=("$found"); done < <(compgen -G "$PACKAGE_MASK" || true)
+          if [ "${#files[@]}" -ne 1 ]; then
+            echo "::error::По маске '$PACKAGE_MASK' найдено файлов: ${#files[@]}, а нужен ровно один"
+            exit 1
+          fi
+          file="${files[0]}"
+
+          id_token=$(curl -sSf -G "$ACTIONS_ID_TOKEN_REQUEST_URL" \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            --data-urlencode "audience=$audience" | jq -r '.value // empty')
+          if [ -z "$id_token" ]; then
+            echo "::error::GitHub не вернул id-token"
+            exit 1
+          fi
+          echo "::add-mask::$id_token"
+
+          echo "Публикация $file в $push_url"
+          curl -sS --fail-with-body -X POST "$push_url" \
+            -H "OAUTH-TOKEN: $id_token" \
+            -H "FILE-NAME: $(basename "$file")" \
+            -H "CHANNEL: $OPM_HUB_CHANNEL" \
+            --data-binary "@$file"
  
