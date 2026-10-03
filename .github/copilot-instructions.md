@@ -22,6 +22,8 @@ This repository contains a collection of reusable GitHub Actions workflows desig
 ### Writing Tests for Step Scripts
 - Give the step an `id` and test it through `tests/helpers/workflow.bash`: `run_step <file> <job> <step id> name=value...` substitutes `${{ inputs.name }}`, runs the script with `bash -eo pipefail` in the current directory, and `step_output <name>` reads the step's `$GITHUB_OUTPUT`
 - An unsubstituted `${{ }}` left in the script fails the test: pass every input the script uses
+- `env` of the workflow, the job and the step is exported with the same input substitution; a value still holding an expression (e.g. `${{ secrets.* }}`) is not exported. External commands (`curl`, ...) are stubbed by a script put first in `PATH`
+- `step_field <file> <job> <step id> <field>` reads any step field, e.g. its `if` condition
 - A step duplicated across workflows is tested in every copy
 
 ### Workflow Types Available

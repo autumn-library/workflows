@@ -385,12 +385,16 @@ jobs:
 | package_mask      | Файловая маска собранного пакета. Несмотря на необязательность параметра, рекомендуется его передавать до исправления ошибки в шаге публикации в хаб | *.ospx |
 | dotnet_version        | Версия .NET для установки                                                                               |                                                                                         |
 | os_version            | Операционная система для запуска релиза                                                                | ubuntu-latest                                                                           |
+| trusted_publishing    | Публиковать доверенным конвейером: вместо `PUSH_TOKEN` хабу предъявляется OIDC id-token конвейера. Вызывающий workflow обязан выдать `id-token: write` | false |
+| hub_url               | Адрес хаба для доверенной публикации                                                                    | https://hub.oscript.io                                                                  |
+| pool                  | Пул хаба для доверенной публикации. Пусто — `default`                                                   | default                                                                                 |
+| audience              | Аудитория id-token для доверенной публикации. Пусто — значение `hub_url`                                |                                                                                         |
 
 Секреты:
 
 | Имя секрета | Описание                                      | Обязательный |
 | ----------- | --------------------------------------------- | ------------ |
-| PUSH_TOKEN  | GitHub токен для публикации релизов в хаб opm | Нет          |
+| PUSH_TOKEN  | GitHub токен для публикации релизов в хаб opm. При `trusted_publishing: true` не используется | Нет          |
 
 ### Использование
 
@@ -413,6 +417,44 @@ jobs:
     secrets:
       PUSH_TOKEN: ${{ secrets.PUSH_TOKEN }}
 ```
+
+### Доверенная публикация (trusted publishing)
+
+Хаб на [OpenHub](https://github.com/Segate-ekb/openhub) — на нём работает и https://hub.oscript.io — принимает публикацию без токена в секретах репозитория: конвейер запрашивает у GitHub короткоживущий OIDC id-token, а хаб проверяет его подпись и сверяет репозиторий, файл workflow и реф с записью доверия, заведённой на пакет.
+
+1. В настройках пакета на хабе, раздел «Доверенная публикация», доверьте конвейеру: репозиторий `owner/repo`, конвейер — имя **вашего** файла (`release.yml`), а не `autumn-library/workflows`: хаб сверяет верхнеуровневый workflow. Реф — маска тегов релиза, например `v*`.
+2. Выдайте вызывающему workflow `permissions: id-token: write` и передайте `trusted_publishing: true`.
+
+Пакет публикуется по адресу `<hub_url>/api/v1/pools/<pool>/push`, по умолчанию — в пул `default`. Чтобы при ручном запуске можно было выбрать другой пул, объявите вход у `workflow_dispatch` и передайте его в `pool`: при запуске по релизу вход пуст, и публикация идёт в `default`.
+
+```yaml
+name: Публикация релиза
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      pool:
+        description: Пул хаба
+        required: false
+        default: default
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  release:
+    uses: autumn-library/workflows/.github/workflows/release.yml@v1
+    with:
+      package_mask: "annotations-*.ospx" # change me!
+      trusted_publishing: true
+      pool: ${{ inputs.pool }}
+```
+
+Ручной запуск проходит сверку рефа, как и любой другой: запускайте его на теге релиза, если доверие заведено на маску `v*`, — с ветки хаб публикацию отклонит. Доверие не создаёт новых имён: первую версию пакета публикует человек.
 
 ## Разработка
 
