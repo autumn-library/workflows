@@ -7,6 +7,10 @@ name: Подготовка релиза и публикация в хабе
 on:
   workflow_call:
     inputs:
+      locale:
+        required: false
+        type: string
+        default: "ru_RU"
       oscript_version:
         required: false
         type: string
@@ -64,6 +68,10 @@ jobs:
       # Загрузка проекта
       - name: Актуализация
         uses: actions/checkout@v7.0.1
+
+      - name: Установка локали (Linux)
+        if: runner.os == 'Linux'
+        run: sudo locale-gen ${{ inputs.locale }}.UTF-8
 
       - name: Установка .NET
         if: inputs.dotnet_version != ''
