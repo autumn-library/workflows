@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Установка bats
-        uses: bats-core/bats-action@4.0.0
+        uses: bats-core/bats-action@4.1.0
         with:
           bats-version: 1.14.0
           support-install: false
